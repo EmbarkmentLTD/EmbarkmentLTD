@@ -37,7 +37,7 @@ gem "tailwindcss-rails", "~> 2.3"
 gem 'whenever', require: false
 gem 'mail'
 gem 'sendgrid-ruby'
-gem 'sendgrid-actionmailer', '~> 2.0'
+gem 'sendgrid-actionmailer', '~> 3.2'
 
 
 # Reduces boot times through caching; required in config/boot.rb
