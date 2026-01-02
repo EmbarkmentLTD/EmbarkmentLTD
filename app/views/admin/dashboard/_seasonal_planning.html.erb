@@ -1,0 +1,28 @@
+<div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Seasonal Planning</h2>
+    <div class="space-y-4">
+        <div class="p-4 bg-green-50 rounded-lg">
+            <h3 class="font-semibold text-green-800">Upcoming Season: <%= @seasonal_recommendations[:season] %></h3>
+            <p class="text-sm text-green-700 mt-1">Recommended focus: <%= @seasonal_recommendations[:focus] %></p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="p-3 bg-blue-50 rounded">
+                <p class="font-semibold">Carrots</p>
+                <p class="text-sm text-gray-600">High demand</p>
+            </div>
+            <div class="p-3 bg-orange-50 rounded">
+                <p class="font-semibold">Oranges</p>
+                <p class="text-sm text-gray-600">Seasonal peak</p>
+            </div>
+            <div class="p-3 bg-purple-50 rounded">
+                <p class="font-semibold">Potatoes</p>
+                <p class="text-sm text-gray-600">Stable supply</p>
+            </div>
+            <div class="p-3 bg-red-50 rounded">
+                <p class="font-semibold">Tomatoes</p>
+                <p class="text-sm text-gray-600">Low supply</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,155 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- User Profile Header -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex items-center space-x-6">
+            <% if @user.avatar.attached? %>
+            <%= image_tag @user.avatar, class: "w-24 h-24 rounded-full object-cover" %>
+            <% else %>
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
+                <i data-lucide="user" class="h-12 w-12 text-green-600"></i>
+            </div>
+            <% end %>
+
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold text-gray-900"><%= @user.name %></h1>
+                <p class="text-gray-600"><%= @user.email %></p>
+                <p class="text-gray-500 mt-2">
+                    <i data-lucide="map-pin" class="h-4 w-4 inline mr-1"></i>
+                    <%= @user.location %>
+                </p>
+                <div class="flex items-center space-x-4 mt-3">
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium capitalize">
+                        joined <%= time_ago_in_words(@user.created_at) %> ago
+                    </span>
+
+                    <% if @user.supplier? %>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        🌱 Supplier
+                    </span>
+                    <% end %>
+                </div>
+            </div>
+
+            <% if @user == current_user %>
+            <%= link_to "Edit Profile", edit_user_path(@user), 
+              class: "bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+            <% end %>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- User's Products -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <%= @user.supplier? ? 'Products for Sale' : 'Products' %>
+                    <span class="text-gray-500 text-sm">(<%= @products.total_count %>)</span>
+                </h2>
+
+                <% if @user == current_user && current_user.supplier? %>
+                <%= link_to "Add Product", new_product_path, 
+                class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+                <% end %>
+            </div>
+
+            <% if @products.any? %>
+            <div class="space-y-4">
+                <% @products.each do |product| %>
+                <div class="flex items-center space-x-4 border-b pb-4 last:border-b-0">
+                    <% if product.primary_image %>
+                    <%= image_tag product.primary_image, class: "w-16 h-16 object-cover rounded-lg" %>
+                    <% else %>
+                    <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <span class="text-xl"><%= product.category_icon %></span>
+                    </div>
+                    <% end %>
+
+                    <div class="flex-1">
+                        <h3 class="font-medium text-gray-900">
+                            <%= link_to product.name, product_path(product), class: "hover:text-green-600" %>
+                        </h3>
+                        <p class="text-sm text-gray-600">
+                            <%= format_price(product.price) %> / <%= product.unit %> •
+                            <span class="<%= product.in_stock? ? 'text-green-600' : 'text-red-600' %>">
+                                <%= product.in_stock? ? 'In Stock' : 'Out of Stock' %>
+                            </span>
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Listed <%= time_ago_in_words(product.created_at) %> ago
+                        </p>
+                    </div>
+
+                    <% if product.has_ratings? %>
+                    <div class="flex items-center text-yellow-400">
+                        <i data-lucide="star" class="h-4 w-4 fill-current"></i>
+                        <span class="text-sm text-gray-600 ml-1"><%= product.display_rating %></span>
+                    </div>
+                    <% end %>
+                </div>
+                <% end %>
+            </div>
+
+            <% if @products.total_pages > 1 %>
+            <div class="mt-6">
+                <%= paginate @products %>
+            </div>
+            <% end %>
+            <% else %>
+            <div class="text-center py-8 text-gray-500">
+                <i data-lucide="package" class="h-12 w-12 mx-auto mb-2 text-gray-300"></i>
+                <p>No products found.</p>
+                <% if @user == current_user && current_user.supplier? %>
+                <%= link_to "Add your first product", new_product_path, 
+                  class: "mt-2 inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+                <% end %>
+            </div>
+            <% end %>
+        </div>
+
+        <!-- User's Reviews -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                Reviews Written
+                <span class="text-gray-500 text-sm">(<%= @reviews.total_count %>)</span>
+            </h2>
+
+            <% if @reviews.any? %>
+            <div class="space-y-4">
+                <% @reviews.each do |review| %>
+                <div class="border-b pb-4 last:border-b-0">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h3 class="font-medium text-gray-900">
+                                    <%= link_to review.product.name, product_path(review.product), class: "hover:text-green-600" %>
+                                </h3>
+                                <div class="flex text-yellow-400">
+                                    <% review.rating.times do %>
+                                    <i data-lucide="star" class="h-4 w-4 fill-current"></i>
+                                    <% end %>
+                                </div>
+                            </div>
+                            <p class="text-gray-700 text-sm"><%= review.comment %></p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <%= time_ago_in_words(review.created_at) %> ago
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <% end %>
+            </div>
+
+            <% if @reviews.total_pages > 1 %>
+            <div class="mt-6">
+                <%= paginate @reviews %>
+            </div>
+            <% end %>
+            <% else %>
+            <div class="text-center py-8 text-gray-500">
+                <i data-lucide="message-circle" class="h-12 w-12 mx-auto mb-2 text-gray-300"></i>
+                <p>No reviews written yet.</p>
+            </div>
+            <% end %>
+        </div>
+    </div>
+</div>

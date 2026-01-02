@@ -1,0 +1,27 @@
+New Support Message
+===================
+
+Hello <%= @support_user.name %>,
+
+You have received a new support message from <%= @sender.name %>.
+
+Message:
+<%= @message.message %>
+
+Sender Details:
+- Name: <%= @sender.name %>
+- Email: <%= @sender.email %>
+- Role: <%= @sender.role.humanize %>
+
+Sent: <%= @message.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+
+To respond to this message:
+1. Log in to the support dashboard: <%= root_url %>support/dashboard
+2. Find "<%= @sender.name %>" in the users list
+3. Click to start chatting
+
+Or go directly to: <%= root_url %>support/dashboard
+
+---
+This is an automated message from EmbarkmentLTD Support System.
+Please do not reply directly to this email.

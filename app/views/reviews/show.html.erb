@@ -1,0 +1,14 @@
+<h1><%= @product.name %></h1>
+<!-- other product details -->
+
+<h2>Reviews</h2>
+<div id="reviews">
+    <%= render @product.reviews %>
+</div>
+
+<h2>Add a Review</h2>
+<% if current_user %>
+<%= render 'reviews/form' %>
+<% else %>
+<p>You must be logged in to leave a review.</p>
+<% end %>
