@@ -29,7 +29,7 @@ gem "solid_queue"
 gem "solid_cable"
 
 gem 'devise', '~> 4.9'
-gem 'pundit', '~> 2.3'
+gem 'pundit', '~> 2.5'
 gem 'image_processing', '~> 1.2'
 gem 'kaminari', '~> 1.2'
 gem 'rack-cors'
