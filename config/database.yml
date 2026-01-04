@@ -11,7 +11,7 @@
 #
 # Configure Using Gemfile
 # gem "pg"
-#
+# 1
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -19,7 +19,7 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-
+# 2
 development:
   <<: *default
   database: embarkment_ltd_development
@@ -54,6 +54,7 @@ development:
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
+# 3
 test:
   <<: *default
   database: embarkment_ltd_test
@@ -77,10 +78,13 @@ test:
 #
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
-#
+# 4
 production:
   primary: &primary_production
     <<: *default
+
+    url: <%= ENV.fetch("DATABASE_URL") %>
+    
     database: embarkment_ltd_production
     username: embarkment_ltd
     password: <%= ENV["EMBARKMENT_LTD_DATABASE_PASSWORD"] %>
