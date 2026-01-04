@@ -1,8 +1,11 @@
+
 # Clear existing data
 Product.destroy_all
 User.destroy_all
 Order.destroy_all
 Page.destroy_all
+
+
 
 # Create admin user
 admin = User.create!(

@@ -57,6 +57,12 @@ Rails.application.routes.draw do
   # Attachment routes
   get 'attachments/:id/purge', to: 'attachments#purge', as: 'purge_attachment'
 
+  # Temporary route to seed production
+  if Rails.env.production?
+  get '/run_seeds', to: 'maintenance#seed'
+  end
+
+
   # Admin namespace routes
   namespace :admin do
     get '/dashboard', to: 'dashboard#index'
