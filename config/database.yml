@@ -82,9 +82,6 @@ test:
 production:
   primary: &primary_production
     <<: *default
-
-    url: <%= ENV.fetch("DATABASE_URL") %>
-    
     database: embarkment_ltd_production
     username: embarkment_ltd
     password: <%= ENV["EMBARKMENT_LTD_DATABASE_PASSWORD"] %>
