@@ -1,0 +1,25 @@
+Support Response
+================
+
+Hello <%= @user.name %>,
+
+You have received a response from our support team.
+
+From <%= @support_user.name %> (Support Team):
+<%= @message.message %>
+
+Support Agent: <%= @support_user.name %>
+Sent: <%= @message.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+
+To continue the conversation:
+1. Log in to your account: <%= new_user_session_url %>
+2. Look for the chat widget in the bottom right corner of any page
+3. Type your response and send
+
+Or go directly to: <%= new_user_session_url %>
+
+---
+This is an automated message from EmbarkmentLTD Support System.
+If you need further assistance, please use the chat widget on our website.
+
+© <%= Time.current.year %> EmbarkmentLTD. All rights reserved.

@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  name: MyString
+  description: MyText
+  category: MyString
+  price: 9.99
+  stock_quantity: 1
+  unit: MyString
+  location: MyString
+  is_organic: false
+  featured: false
+  harvest_date: 2025-10-16
+  expiry_date: 2025-10-16
+  average_rating: 9.99
+  reviews_count: 1
+
+two:
+  user: two
+  name: MyString
+  description: MyText
+  category: MyString
+  price: 9.99
+  stock_quantity: 1
+  unit: MyString
+  location: MyString
+  is_organic: false
+  featured: false
+  harvest_date: 2025-10-16
+  expiry_date: 2025-10-16
+  average_rating: 9.99
+  reviews_count: 1

@@ -1,0 +1,86 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- Conversation Header -->
+        <div class="border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <%= link_to support_dashboard_path, class: "text-gray-400 hover:text-gray-500 mr-2" do %>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <% end %>
+                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Chat with <%= @other_user.name %></h2>
+                        <p class="text-sm text-gray-500">
+                            <%= @other_user.email %> • <%= @other_user.role.humanize %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="h-[500px] overflow-y-auto p-6 bg-gray-50" id="conversation-messages">
+            <% if @messages.any? %>
+            <% @messages.each do |message| %>
+            <div class="mb-4 <%= message.sender == current_user ? 'text-right' : 'text-left' %>">
+                <div class="inline-block max-w-[70%]">
+                    <div class="<%= message.sender == current_user ? 'bg-green-600 text-white' : 'bg-white text-gray-900 border border-gray-200' %> 
+                         rounded-lg px-4 py-2 shadow-sm">
+                        <p class="text-sm"><%= message.message %></p>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-500">
+                        <%= message.sender.name %> •
+                        <%= message.created_at.strftime("%I:%M %p") %>
+                        <% if message.unread? && message.sender != current_user %>
+                        <span class="ml-2 text-green-600">• New</span>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+            <% end %>
+            <% else %>
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">💬</div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                <p class="text-gray-500">Start a conversation with <%= @other_user.name %></p>
+            </div>
+            <% end %>
+        </div>
+
+        <!-- Message Form -->
+        <div class="border-t border-gray-200 p-6">
+            <%= form_with url: support_create_message_path, method: :post, 
+               class: "space-y-4" do |form| %>
+            <%= hidden_field_tag :user_id, @other_user.id %>
+
+            <div class="flex space-x-4">
+                <div class="flex-1">
+                    <textarea name="message" id="message-input" placeholder="Type your message..." rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" required></textarea>
+                </div>
+                <div class="flex-shrink-0">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 h-full">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        Send
+                    </button>
+                </div>
+            </div>
+            <% end %>
+        </div>
+
+        <script>
+            // Auto-scroll to bottom of messages
+            document.addEventListener('DOMContentLoaded', function() {
+                const messagesContainer = document.getElementById('conversation-messages');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            });
+        </script>

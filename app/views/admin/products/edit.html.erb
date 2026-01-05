@@ -1,0 +1,164 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-6">
+        <%= link_to '← Back to Products', admin_products_path, class: "text-green-600 hover:text-green-700 font-medium" %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Edit Product</h1>
+
+        <%= form_with model: [:admin, @product], local: true, class: "space-y-6" do |form| %>
+        <% if @product.errors.any? %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <h2 class="font-semibold mb-2">
+                <%= pluralize(@product.errors.count, "error") %> prohibited this product from being saved:
+            </h2>
+            <ul class="list-disc list-inside text-sm">
+                <% @product.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+                <% end %>
+            </ul>
+        </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Basic Information -->
+            <div class="space-y-6">
+                <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
+
+                <div>
+                    <%= form.label :name, "Product Name *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                    <%= form.text_field :name, required: true, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                </div>
+
+                <div>
+                    <%= form.label :description, "Description *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                    <%= form.text_area :description, rows: 4, required: true, 
+                  placeholder: "Describe your product...", 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <%= form.label :price, "Price *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">£</span>
+                            </div>
+                            <%= form.number_field :price, step: 0.01, min: 0, required: true, 
+                      class: "pl-7 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                        </div>
+                    </div>
+
+                    <div>
+                        <%= form.label :unit, "Unit *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                        <%= form.select :unit, ['kg', 'lb', 'piece', 'bunch', 'pack', 'dozen'], {}, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <%= form.label :stock_quantity, "Stock Quantity *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                        <%= form.number_field :stock_quantity, min: 0, required: true, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                    </div>
+
+                    <div>
+                        <%= form.label :category, "Category *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                        <%= form.select :category, ['vegetables', 'fruits', 'grains', 'dairy', 'meat', 'seafood', 'herbs', 'other'], {}, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Details -->
+            <div class="space-y-6">
+                <h2 class="text-lg font-semibold text-gray-900">Additional Details</h2>
+
+                <div>
+                    <%= form.label :location, "Location *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                    <%= form.text_field :location, required: true, 
+                  placeholder: "City, State", 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <%= form.label :harvest_date, "Harvest Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                        <%= form.date_field :harvest_date, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                    </div>
+
+                    <div>
+                        <%= form.label :expiry_date, "Expiry Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                        <%= form.date_field :expiry_date, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                    </div>
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <%= form.check_box :is_organic, class: "h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" %>
+                        <%= form.label :is_organic, "Organic Product", class: "ml-2 block text-sm text-gray-900" %>
+                    </div>
+
+                    <div class="flex items-center">
+                        <%= form.check_box :featured, class: "h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" %>
+                        <%= form.label :featured, "Featured Product", class: "ml-2 block text-sm text-gray-900" %>
+                    </div>
+                </div>
+
+                <!-- Image Upload -->
+                <div>
+                    <%= form.label :images, "Product Images", class: "block text-sm font-medium text-gray-700 mb-2" %>
+
+                    <!-- Current Images -->
+                    <% if @product.images.any? %>
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Current Images:</p>
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <% @product.images.each do |image| %>
+                            <div class="relative">
+                                <%= image_tag image, class: "w-20 h-20 object-cover rounded-lg" %>
+                            </div>
+                            <% end %>
+                        </div>
+                    </div>
+                    <% end %>
+
+                    <!-- New Images -->
+                    <%= form.file_field :images, multiple: true, 
+                  class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100",
+                  accept: "image/*" %>
+                    <p class="text-xs text-gray-500 mt-1">You can select multiple images. Supported formats: JPG, PNG, GIF</p>
+                </div>
+
+                <!-- Product Owner (Admin Only) -->
+                <% if current_user.admin? %>
+                <div>
+                    <%= form.label :user_id, "Product Owner", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                    <%= form.collection_select :user_id, User.suppliers, :id, :name, { include_blank: "Select Owner" }, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                </div>
+                <% end %>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+            <div class="text-sm text-gray-500">
+                Last updated: <%= @product.updated_at.strftime("%d %B, %Y at %H:%M") %>
+                <% if @product.user %>
+                • Listed by: <%= @product.user.name %>
+                <% end %>
+            </div>
+
+            <div class="flex space-x-3">
+                <%= link_to 'Cancel', admin_product_path(@product), class: "bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors" %>
+                <%= form.submit "Update Product", class: "bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+            </div>
+        </div>
+        <% end %>
+    </div>
+</div>

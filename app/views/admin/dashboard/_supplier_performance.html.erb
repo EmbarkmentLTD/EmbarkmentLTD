@@ -1,0 +1,26 @@
+<div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Supplier Performance</h2>
+    <div class="space-y-4">
+        <% @top_suppliers.each do |supplier| %>
+        <div class="flex items-center justify-between border-b pb-3">
+            <div class="flex items-center space-x-3">
+                <% if supplier.avatar.attached? %>
+                <%= image_tag supplier.avatar, class: "w-8 h-8 rounded-full object-cover" %>
+                <% else %>
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span class="text-sm font-semibold text-green-600"><%= supplier.name[0] %></span>
+                </div>
+                <% end %>
+                <div>
+                    <p class="font-medium text-gray-900"><%= supplier.name %></p>
+                    <p class="text-sm text-gray-600"><%= supplier.product_count %> products</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="font-semibold text-green-600">Rating: <%= (supplier.average_rating) %></p>
+                <p class="text-sm text-gray-600"><%= supplier.review_count %> reviews</p>
+            </div>
+        </div>
+        <% end %>
+    </div>
+</div>

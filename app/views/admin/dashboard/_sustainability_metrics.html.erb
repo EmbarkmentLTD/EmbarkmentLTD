@@ -1,0 +1,23 @@
+<div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Sustainability Impact</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center p-4 bg-green-50 rounded-lg">
+            <p class="text-2xl font-bold text-green-600">🌍</p>
+            <p class="font-semibold">Carbon Saved</p>
+            <p class="text-2xl font-bold text-green-600"><%= number_to_human(@sustainability_metrics[:carbon_saved]) %>kg</p>
+            <p class="text-sm text-gray-600">Through local sourcing</p>
+        </div>
+        <div class="text-center p-4 bg-blue-50 rounded-lg">
+            <p class="text-2xl font-bold text-blue-600">💧</p>
+            <p class="font-semibold">Water Saved</p>
+            <p class="text-2xl font-bold text-blue-600"><%= number_to_human(@sustainability_metrics[:water_saved]) %>L</p>
+            <p class="text-sm text-gray-600">Efficient farming</p>
+        </div>
+        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+            <p class="text-2xl font-bold text-yellow-600">👨‍🌾</p>
+            <p class="font-semibold">Local Farmers</p>
+            <p class="text-2xl font-bold text-yellow-600"><%= @sustainability_metrics[:local_farmers] %></p>
+            <p class="text-sm text-gray-600">Supported</p>
+        </div>
+    </div>
+</div>

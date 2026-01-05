@@ -1,0 +1,19 @@
+<div class="min-h-screen bg-gray-50">
+    <% if logged_in? && current_user.admin? %>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div class="flex justify-end">
+            <%= link_to edit_admin_page_path('about-us'), 
+            class: "bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2" do %>
+            <i data-lucide="edit" class="h-4 w-4"></i>
+            <span>Edit Page</span>
+            <% end %>
+        </div>
+    </div>
+    <% end %>
+
+    <%= raw @page.content %>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>

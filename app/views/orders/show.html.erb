@@ -1,0 +1,114 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Order Header -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Order #<%= @order.id %></h1>
+                <p class="text-gray-600">
+                    Placed on <%= @order.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+                </p>
+            </div>
+            <div class="text-right">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize
+          <%= order_status_color(@order.status) %>">
+                    <%= @order.status %>
+                </span>
+                <p class="text-xl font-bold text-gray-900 mt-1">
+                    Total: <%= format_price(@order.total_amount) %>
+                </p>
+            </div>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="border-t pt-4">
+            <h3 class="font-medium text-gray-900 mb-2">Shipping Information</h3>
+            <p class="text-gray-600"><%= @order.shipping_address %></p>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Order Items</h2>
+
+        <div class="space-y-4">
+            <% @order.order_items.each do |item| %>
+            <div class="flex items-center space-x-4 border-b pb-4 last:border-b-0">
+                <% if item.product.primary_image %>
+                <%= image_tag item.product.primary_image, class: "w-16 h-16 object-cover rounded-lg" %>
+                <% else %>
+                <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span class="text-xl"><%= item.product.category_icon %></span>
+                </div>
+                <% end %>
+
+                <div class="flex-1">
+                    <h3 class="font-medium text-gray-900">
+                        <%= link_to item.product.name, product_path(item.product), class: "hover:text-green-600" %>
+                    </h3>
+                    <p class="text-sm text-gray-600">by <%= item.product.sold_by %></p>
+                    <p class="text-sm text-gray-600">
+                        <%= format_price(item.unit_price) %> × <%= item.quantity %> <%= item.product.unit %>
+                    </p>
+                </div>
+
+                <div class="text-right">
+                    <p class="font-semibold text-gray-900">
+                        <%= format_price(item.subtotal) %>
+                    </p>
+                </div>
+            </div>
+            <% end %>
+        </div>
+
+        <!-- Order Total -->
+        <div class="border-t pt-4 mt-4">
+            <div class="flex justify-between items-center text-lg font-semibold">
+                <span>Total:</span>
+                <span><%= format_price(@order.total_amount) %></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Actions -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Order Actions</h2>
+
+        <div class="flex space-x-4">
+            <%= link_to 'Back to Orders', orders_path, 
+            class: "bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize
+  <%= order_status_color(@order.status) %>">
+                <%= @order.status || 'pending' %>
+            </span>
+
+            <% if @order.can_cancel? %>
+            <%= button_to 'Cancel Order', cancel_order_path(@order), 
+              method: :post,
+              data: { confirm: 'Are you sure you want to cancel this order? This action cannot be undone.' },
+              class: "bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+            <% end %>
+
+            <!-- Admin actions -->
+            <% if current_user.admin? %>
+            <% if @order.pending? %>
+            <%= button_to 'Confirm Order', confirm_order_path(@order), 
+                method: :post,
+                class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+            <% end %>
+
+            <% if @order.confirmed? %>
+            <%= button_to 'Mark as Shipped', ship_order_path(@order), 
+                method: :post,
+                class: "bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+            <% end %>
+
+            <% if @order.shipped? %>
+            <%= button_to 'Mark as Delivered', deliver_order_path(@order), 
+                method: :post,
+                class: "bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors" %>
+            <% end %>
+            <% end %>
+        </div>
+    </div>
+</div>

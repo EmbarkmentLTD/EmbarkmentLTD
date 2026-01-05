@@ -1,0 +1,142 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Email Quotation Request</h1>
+        <p class="text-gray-600 mb-6">Fill in your details to receive a personalized quotation via email</p>
+
+        <!-- Server-side error display -->
+        <% if flash[:alert] %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <%= flash[:alert] %>
+        </div>
+        <% end %>
+
+        <%= form_with url: submit_email_quotation_path, method: :post, class: "space-y-6" do |form| %>
+
+        <!-- Contact Information -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Contact Information</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <%= form.text_field :contact_name, value: current_user.name, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <%= form.email_field :contact_email, value: current_user.email, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <%= form.text_field :contact_phone, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Company</label>
+                    <%= form.text_field :company, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Information -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Delivery Information</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                    <%= form.text_field :delivery_street, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <%= form.text_field :delivery_city, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">State/Province</label>
+                        <%= form.text_field :delivery_state, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ZIP/Postal Code</label>
+                        <%= form.text_field :delivery_zip, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <%= form.text_field :delivery_country, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Details -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Details</h2>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity Details (e.g., 50 kg, 100 boxes, 5 pallets)
+                </label>
+                <%= form.text_area :order_details, rows: 3, placeholder: "Specify the quantity or size you need...", class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true %>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Additional Information</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Timeframe</label>
+                    <%= form.select :timeframe, 
+                ['Urgent (within 1 week)', 'Standard (2-3 weeks)', 'Flexible (1 month+)', 'No specific timeframe'], 
+                { include_blank: 'Select timeframe...' }, 
+                { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true } %>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Terms Preference</label>
+                    <%= form.select :delivery_terms, 
+                ['EXW (Ex Works)', 'FCA (Free Carrier)', 'FAS (Free Alongside Ship)', 'FOB (Free On Board)', 'CFR (Cost and Freight)', 'CIF (Cost, Insurance & Freight)', 'CPT (Carriage Paid To)', 'CIP (Carriage and Insurance Paid)', 'DPU (Delivered at Place Unloaded)', 'DAP (Delivered at Place)', 'DDP (Delivered Duty Paid)', 'Other'], 
+                { include_blank: 'Select delivery terms...' }, 
+                { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" } %>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Special Requirements, Preferences, or Questions</label>
+                    <%= form.text_area :special_requirements, rows: 4, placeholder: "Any special requirements, preferences, or questions...", class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items in Quotation Request -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Items in Quotation Request</h2>
+            <% if @quotation_items.present? && @quotation_items.any? %>
+            <% @quotation_items.each do |product, quantity| %>
+            <div class="flex items-center justify-between py-3 border-b border-gray-200">
+                <div class="flex items-center space-x-4">
+                    <% if product.images.any? %>
+                    <%= image_tag url_for(product.images.first), class: "w-16 h-16 object-cover rounded" %>
+                    <% end %>
+                    <div>
+                        <h3 class="font-medium text-gray-800"><%= product.name %></h3>
+                        <p class="text-sm text-gray-600">Qty: <%= quantity %></p>
+                    </div>
+                </div>
+                <button type="button" onclick="fetch('<%= remove_quotation_item_path(product_id: product.id) %>', { method: 'DELETE', headers: { 'X-CSRF-Token': document.querySelector('[name=csrf-token]').content } }).then(() => window.location.reload())" class="text-red-600 hover:text-red-800 bg-transparent border-none cursor-pointer text-sm">
+                    Remove
+                </button>
+            </div>
+            <% end %>
+            <% else %>
+            <p class="text-gray-500 text-center py-6">No items in your quotation request yet.</p>
+            <% end %>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex justify-between items-center pt-6">
+            <%= link_to "Cancel", products_path, class: "px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200" %>
+
+            <% if @quotation_items.present? %>
+            <%= form.submit "Submit Quotation Request", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 cursor-pointer" %>
+            <% else %>
+            <button type="button" disabled class="bg-gray-400 text-gray-200 font-medium py-2 px-6 rounded-md cursor-not-allowed">
+                Submit Quotation Request
+            </button>
+            <% end %>
+        </div>
+    </div>
+    <% end %>
+</div>

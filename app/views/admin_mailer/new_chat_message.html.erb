@@ -1,0 +1,49 @@
+<div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+    <div style="background: linear-gradient(to right, #10B981, #059669); padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0;">💬 New Chat Message</h1>
+    </div>
+
+    <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e5e7eb;">
+        <div style="background: white; padding: 20px; border-radius: 6px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
+            <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 15px 0;">
+                <p style="margin: 0; font-style: italic; color: #374151;">"<%= @chat_data[:message] %>"</p>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-weight: bold; color: #374151; width: 100px;">From:</td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; color: #111827;">
+                        <%= @chat_data[:name] || 'Anonymous' %>
+                        <% if @chat_data[:email] %>
+                        (<%= link_to @chat_data[:email], "mailto:#{@chat_data[:email]}", style: "color: #10B981;" %>)
+                        <% end %>
+                        <% if @chat_data[:user] %>
+                        <span style="background: #10B981; color: white; padding: 2px 6px; border-radius: 12px; font-size: 12px; margin-left: 8px;">Registered User</span>
+                        <% else %>
+                        <span style="background: #6B7280; color: white; padding: 2px 6px; border-radius: 12px; font-size: 12px; margin-left: 8px;">Visitor</span>
+                        <% end %>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold; color: #374151;">Time:</td>
+                    <td style="padding: 8px 0; color: #111827;"><%= Time.current.strftime("%B %d, %Y at %H:%M") %></td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="background: #fef3c7; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e; font-size: 14px;">
+                <strong>Technical Info:</strong><br>
+                IP: <%= @chat_data[:ip_address] %><br>
+                Page: <%= @chat_data[:page_url] || request.referer || 'Unknown' %><br>
+                User Agent: <%= truncate(@chat_data[:user_agent], length: 100) %>
+            </p>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <p style="color: #6B7280; font-size: 14px;">
+                💬 This message was sent via the website chat widget
+            </p>
+        </div>
+    </div>
+</div>

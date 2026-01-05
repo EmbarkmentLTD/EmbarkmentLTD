@@ -1,0 +1,110 @@
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p class="text-gray-600 mt-2">Platform Intelligence & Analytics</p>
+        </div>
+        <div class="flex space-x-4">
+            <%= link_to 'Manage Users', admin_users_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium" %>
+            <%= link_to 'Manage Products', admin_products_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium" %>
+            <%= link_to 'Manage Orders', admin_orders_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium" %>
+            <%= link_to 'Manage Reviews', '#', class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium" %>
+            <%= link_to 'Message Dashboard', support_dashboard_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium" %>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900">Total Users</h3>
+            <p class="text-3xl font-bold text-blue-600"><%= @users_count %></p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900">Products</h3>
+            <p class="text-3xl font-bold text-green-600"><%= @products_count %></p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900">Orders</h3>
+            <p class="text-3xl font-bold text-purple-600"><%= @orders_count %></p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900">Active This Week</h3>
+            <p class="text-3xl font-bold text-orange-600"><%= User.where('updated_at >= ?', 1.week.ago).count %></p>
+        </div>
+    </div>
+
+    <!-- Platform Intelligence Tab -->
+    <div class="bg-white rounded-lg shadow-sm mb-8">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6">
+                <a href="#" class="border-green-500 text-green-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Platform Intelligence
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-6">
+            <!-- Feature 1: Business Intelligence & Analytics -->
+            <%= render 'admin/dashboard/business_intelligence' %>
+
+            <!-- Feature 2: Supplier Performance Monitoring -->
+            <%= render 'admin/dashboard/supplier_performance' %>
+
+            <!-- Feature 3: Market Insights & Trends -->
+            <%= render 'admin/dashboard/market_insights' %>
+
+            <!-- Feature 4: Quality Control & Verification -->
+            <%= render 'admin/dashboard/quality_control' %>
+
+            <!-- Feature 5: Platform Optimization Tools -->
+            <%= render 'admin/dashboard/platform_optimization' %>
+
+            <!-- Feature 6: Seasonal Planning & Forecasting -->
+            <%= render 'admin/dashboard/seasonal_planning' %>
+
+            <!-- Feature 7: Sustainability Metrics -->
+            <%= render 'admin/dashboard/sustainability_metrics' %>
+
+            <!-- Feature 8: Quick Actions Panel -->
+            <%= render 'admin/dashboard/quick_actions' %>
+        </div>
+    </div>
+
+    <!-- Existing Recent Activity Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow border">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Orders</h2>
+            <% if @recent_orders.any? %>
+            <div class="space-y-4">
+                <% @recent_orders.each do |order| %>
+                <div class="border-b pb-4 last:border-b-0">
+                    <p class="font-medium">Order #<%= order.id %></p>
+                    <p class="text-gray-600">By <%= order.user.name %></p>
+                    <p class="text-sm text-gray-500"><%= order.created_at.strftime("%b %d, %Y") %></p>
+                </div>
+                <% end %>
+            </div>
+            <% else %>
+            <p class="text-gray-500">No recent orders</p>
+            <% end %>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow border">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Products</h2>
+            <% if @recent_products.any? %>
+            <div class="space-y-4">
+                <% @recent_products.each do |product| %>
+                <div class="border-b pb-4 last:border-b-0">
+                    <p class="font-medium"><%= product.name %></p>
+                    <p class="text-gray-600">By <%= product.user.name %></p>
+                    <p class="text-sm text-gray-500"><%= product.created_at.strftime("%b %d, %Y") %></p>
+                </div>
+                <% end %>
+            </div>
+            <% else %>
+            <p class="text-gray-500">No recent products</p>
+            <% end %>
+        </div>
+    </div>
+</div>

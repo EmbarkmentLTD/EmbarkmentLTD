@@ -1,0 +1,51 @@
+<div class="mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Business Intelligence & Analytics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Platform Health Score</h3>
+            <p class="text-3xl font-bold 
+        <%= @platform_health_score >= 80 ? 'text-green-600' : @platform_health_score >= 60 ? 'text-yellow-600' : 'text-red-600' %>">
+                <%= @platform_health_score %>%
+            </p>
+            <p class="text-sm text-gray-600 mt-2">Based on user engagement & transactions</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Supplier Quality Index</h3>
+            <p class="text-3xl font-bold 
+        <%= @supplier_quality_index >= 4.0 ? 'text-green-600' : @supplier_quality_index >= 3.0 ? 'text-yellow-600' : 'text-red-600' %>">
+                <%= @supplier_quality_index %>/5
+            </p>
+            <p class="text-sm text-gray-600 mt-2">Average supplier rating</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Marketplace Growth</h3>
+            <p class="text-3xl font-bold 
+        <%= @marketplace_growth > 0 ? 'text-green-600' : @marketplace_growth == 0 ? 'text-yellow-600' : 'text-red-600' %>">
+                <%= @marketplace_growth >= 0 ? '+' : '' %><%= @marketplace_growth %>%
+            </p>
+            <p class="text-sm text-gray-600 mt-2">Monthly user growth</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-orange-500">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Category Diversity</h3>
+            <p class="text-3xl font-bold 
+        <%= @category_diversity >= 75 ? 'text-green-600' : @category_diversity >= 50 ? 'text-yellow-600' : 'text-red-600' %>">
+                <%= @category_diversity %>%
+            </p>
+            <p class="text-sm text-gray-600 mt-2">Product category coverage</p>
+        </div>
+    </div>
+
+    <!-- Debug information (remove in production) -->
+    <div class="mt-4 p-4 bg-gray-100 rounded-lg text-xs text-gray-600">
+        <h4 class="font-semibold mb-2">Calculation Details:</h4>
+        <ul class="space-y-1">
+            <li>• Platform Health: User activity + Transactions + Product availability</li>
+            <li>• Supplier Quality: Average rating of all supplier product reviews</li>
+            <li>• Marketplace Growth: % change in new users this month vs last month</li>
+            <li>• Category Diversity: % of 8 main categories with active products</li>
+        </ul>
+    </div>
+</div>
