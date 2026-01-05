@@ -1,0 +1,205 @@
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-green-50 to-emerald-100 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                The fruit of our labour,
+                <br>
+                <span class="text-green-600">
+                    For you and your neighbour.
+                </span>
+            </h1>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Discover the freshest fruits, vegetables, and more directly from farmers in your community.
+                Support local agriculture and enjoy farm-to-table quality.
+            </p>
+
+            <!-- Search Bar -->
+            <%= form_with url: products_path, method: :get, local: true, class: "max-w-2xl mx-auto" do |form| %>
+            <div class="flex shadow-lg rounded-lg overflow-hidden">
+                <%= form.text_field :search, 
+                placeholder: "Search for products, farmers, or locations...",
+                class: "flex-1 px-6 py-4 text-lg border-0 focus:ring-0 focus:outline-none" %>
+                <%= form.submit "Search", 
+                class: "bg-green-600 hover:bg-green-700 text-white px-8 font-medium transition-colors" %>
+            </div>
+            <% end %>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Shop by Category</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <% @categories.each do |key, name| %>
+        <% 
+          # Get products for this category collage
+          category_products = @category_products[key]
+          product_count = @category_counts[key] || 0
+        %>
+        <%= link_to products_path(categories: key), 
+            class: "bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow overflow-hidden group" do %>
+
+        <div class="aspect-square relative bg-gray-100">
+            <% if category_products&.any? %>
+            <!-- Grid of up to 4 product images (collage) -->
+            <div class="grid grid-cols-2 gap-1 h-full">
+                <% category_products.each do |product| %>
+                <% if product.images.attached? %>
+                <div class="relative overflow-hidden">
+                    <%= image_tag product.primary_image, 
+                          class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
+                          alt: product.name %>
+                </div>
+                <% end %>
+                <% end %>
+
+                <!-- Fill any empty grid cells -->
+                <% empty_cells = 4 - category_products.count %>
+                <% empty_cells.times do %>
+                <div class="flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+                    <div class="text-2xl"><%= Product.new(category: key).category_icon %></div>
+                </div>
+                <% end %>
+            </div>
+            <% else %>
+            <!-- Fallback if no products with images in this category -->
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+                <div class="text-center p-4">
+                    <div class="text-4xl mb-4"><%= Product.new(category: key).category_icon %></div>
+                    <h3 class="font-semibold text-gray-900"><%= name %></h3>
+                    <% if product_count > 0 %>
+                    <p class="text-sm text-gray-600 mt-1"><%= product_count %> items</p>
+                    <% end %>
+                </div>
+            </div>
+            <% end %>
+
+            <!-- Dark overlay for text readability -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+            <!-- Category name overlay (always visible) -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
+                <div class="text-white text-center bg-black/40 backdrop-blur-sm rounded-lg p-4">
+                    <!--<div class="text-3xl mb-2">
+                        <%= Product.new(category: key).category_icon %>
+                    </div>-->
+                    <h3 class="font-bold text-lg"><%= name %></h3>
+                    <% if product_count > 0 %>
+                    <p class="text-sm text-white/90 mt-1"><%= product_count %> items</p>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+
+        <% end %>
+        <% end %>
+    </div>
+</div>
+
+<!-- Featured Products -->
+<% if @featured_products.any? %>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Featured Products</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <% @featured_products.each do |product| %>
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+            <%= link_to product_path(product) do %>
+            <div class="aspect-square bg-gray-100 relative overflow-hidden">
+                <% if product.primary_image %>
+                <%= image_tag product.primary_image, 
+                      class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" %>
+                <% else %>
+                <div class="w-full h-full flex items-center justify-center text-4xl">
+                    <%= product.category_icon %>
+                </div>
+                <% end %>
+
+                <% if product.is_organic %>
+                <div class="absolute top-3 left-3">
+                    <span class="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        Organic
+                    </span>
+                </div>
+                <% end %>
+            </div>
+
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="<%= product.category_color %> px-2 py-1 rounded-full text-xs font-medium">
+                        <%= product.category.humanize %>
+                    </span>
+                    <% if product.average_rating > 0 %>
+                    <div class="flex items-center text-yellow-400">
+                        <i data-lucide="star" class="h-4 w-4 fill-current"></i>
+                        <span class="text-sm text-gray-600 ml-1"><%= product.average_rating %></span>
+                    </div>
+                    <% end %>
+                </div>
+
+                <h3 class="font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                    <%= product.name %>
+                </h3>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-lg font-bold text-gray-900">
+                            £<%= product.price %>
+                        </span>
+                        <span class="text-sm text-gray-500">/ <%= product.unit %></span>
+                    </div>
+
+                    <div class="text-sm text-gray-500">
+                        by <%= product.sold_by %>
+                    </div>
+                </div>
+            </div>
+            <% end %>
+        </div>
+        <% end %>
+    </div>
+
+    <div class="text-center mt-8">
+        <%= link_to 'View All Products', products_path, 
+            class: "bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md font-medium transition-colors" %>
+    </div>
+</div>
+<% end %>
+
+<!-- Why Choose Us -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900">Why Choose EmbarkmentLTD?</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="leaf" class="h-8 w-8 text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Fresh & Local</h3>
+                <p class="text-gray-600">Direct from local farmers to your table, ensuring maximum freshness.</p>
+            </div>
+
+            <div class="text-center">
+                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="heart" class="h-8 w-8 text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Support Local</h3>
+                <p class="text-gray-600">Support your local farming community and sustainable agriculture.</p>
+            </div>
+
+            <div class="text-center">
+                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="shield" class="h-8 w-8 text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Quality Guaranteed</h3>
+                <p class="text-gray-600">Rigorous quality standards and farmer verification process.</p>
+            </div>
+        </div>
+    </div>
+</div>

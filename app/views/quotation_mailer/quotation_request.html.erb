@@ -1,0 +1,28 @@
+<h2>New Quotation Request</h2>
+
+<h3>Contact Information</h3>
+<p><strong>Name:</strong> <%= @user.name %></p>
+<p><strong>Email:</strong> <%= @user.email %></p>
+<p><strong>Phone:</strong> <%= @quotation_data[:contact_info] %></p>
+
+<h3>Delivery Information</h3>
+<p><%= simple_format @quotation_data[:delivery_info] %></p>
+
+<h3>Order Details</h3>
+<p><%= @quotation_data[:order_details] %></p>
+
+<h3>Timeframe:</h3>
+<p><%= @quotation_data[:timeframe] %></p>
+
+<h3>Delivery Terms:</h3>
+<p><%= @quotation_data[:delivery_terms] %></p>
+
+<h3>Special Requirements:</h3>
+<p><%= simple_format @quotation_data[:special_requirements] %></p>
+
+<h3>Items Requested:</h3>
+<ul>
+    <% @items.each do |product, quantity| %>
+    <li><%= product.name %> - Qty: <%= quantity %></li>
+    <% end %>
+</ul>

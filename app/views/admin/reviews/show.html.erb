@@ -1,0 +1,72 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-6">
+        <%= link_to '← Back to Reviews', admin_reviews_path, class: "text-green-600 hover:text-green-700 font-medium" %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Review Details</h1>
+            <div class="flex space-x-3">
+                <%= button_to 'Delete Review', admin_review_path(@review), method: :delete, 
+              data: { confirm: 'Are you sure you want to delete this review?' }, 
+              class: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Review Information</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Rating</label>
+                        <div class="flex text-yellow-400 mt-1">
+                            <% @review.rating.times do %>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <% end %>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Comment</label>
+                        <p class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded"><%= @review.comment %></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <span class="inline-block mt-1 px-3 py-1 <%= @review.flagged? ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' %> text-sm font-medium rounded-full">
+                            <%= @review.flagged? ? 'Flagged' : 'Active' %>
+                        </span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Created</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @review.created_at.strftime("%B %d, %Y at %H:%M") %></p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">User & Product</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">User</label>
+                        <div class="flex items-center space-x-3 mt-1">
+                            <% if @review.user.avatar.attached? %>
+                            <%= image_tag @review.user.avatar, class: "w-8 h-8 rounded-full object-cover" %>
+                            <% end %>
+                            <span class="text-sm text-gray-900"><%= @review.user.name %></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Product</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @review.product.name %></p>
+                        <p class="text-xs text-gray-600"><%= @review.product.category.humanize %></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Product Owner</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @review.product.user.name %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

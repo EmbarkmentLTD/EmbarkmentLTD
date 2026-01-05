@@ -1,0 +1,10 @@
+<div class="review">
+    <p><strong>Rating:</strong> <%= review.rating %> / 5</p>
+    <p><strong>Comment:</strong> <%= review.comment %></p>
+    <p><strong>By:</strong> <%= review.user.email %></p>
+
+    <% if current_user == review.user %>
+    <%= button_to 'Delete Review', product_review_path(review.product, review), method: :delete, data: { confirm: 'Are you sure?' } %>
+    <% end %>
+</div>
+<hr>

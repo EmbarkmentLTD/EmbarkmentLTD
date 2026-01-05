@@ -1,0 +1,215 @@
+<%= form_with model: @product, local: true, multipart: true, class: "space-y-6", id: "product-form" do |form| %>
+<%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+
+<% if @product.errors.any? %>
+<div class="bg-red-50 border border-red-200 rounded-md p-4">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+                <%= pluralize(@product.errors.count, "error") %> prohibited this product from being saved:
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+                <ul class="list-disc pl-5 space-y-1">
+                    <% @product.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                    <% end %>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<% end %>
+
+<!-- Basic Information Section -->
+<div class="bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+            <%= form.label :name, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :name, 
+              placeholder: "e.g., Organic Honey Crisp Apples",
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+
+        <div>
+            <%= form.label :category, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :category, 
+              options_for_select([
+                ['🍎 Fruits', 'fruits'],
+                ['🥕 Vegetables', 'vegetables'],
+                ['🌾 Grains', 'grains'],
+                ['🌿 Herbs', 'herbs'],
+                ['🥜 Nuts', 'nuts'],
+                ['🥛 Dairy', 'dairy'],
+                ['🥩 Meat', 'meat'],
+                ['🌱 Other', 'other']
+              ], @product.category),
+              { prompt: 'Select a category' },
+              { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" } %>
+        </div>
+
+        <div>
+            <%= form.label :location, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :location, 
+              value: @product.location.presence || current_user.location,
+              placeholder: "City, State",
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+
+        <div class="sm:col-span-2">
+            <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_area :description, 
+              rows: 4,
+              placeholder: "Describe your product, growing methods, and what makes it special...",
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing & Inventory Section -->
+<div class="bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Pricing & Inventory</h3>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div>
+            <%= form.label :price, "Price (£)", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :price, 
+              step: 0.01,
+              min: 0,
+              placeholder: "0.00",
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+
+        <div>
+            <%= form.label :unit, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :unit,
+              options_for_select([
+                ['per pound (lb)', 'lb'],
+                ['per kilogram (kg)', 'kg'],
+                ['per ounce (oz)', 'oz'],
+                ['per piece', 'piece'],
+                ['per dozen', 'dozen'],
+                ['per bunch', 'bunch'],
+                ['per bag', 'bag'],
+                ['per ton', 'ton'],
+                ['per box', 'box']
+              ], @product.unit || 'lb'),
+              {},
+              { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" } %>
+        </div>
+
+        <div>
+            <%= form.label :stock_quantity, "Quantity Available", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :stock_quantity, 
+              min: 0,
+              placeholder: "0",
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+    </div>
+</div>
+
+<!-- Product Details Section -->
+<div class="bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Product Details</h3>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div>
+            <%= form.label :harvest_date, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.date_field :harvest_date, 
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+
+        <div>
+            <%= form.label :expiry_date, "Best Before Date", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.date_field :expiry_date, 
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        </div>
+    </div>
+
+    <!-- Options -->
+    <div class="mt-6 space-y-4">
+        <div class="flex items-center">
+            <%= form.check_box :is_organic, 
+              class: "h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" %>
+            <%= form.label :is_organic, "This is an organic product", 
+              class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+
+        <div class="flex items-center">
+            <%= form.check_box :featured, 
+              class: "h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" %>
+            <%= form.label :featured, "Feature this product on homepage", 
+              class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+    </div>
+</div>
+
+<!-- Product Images Section -->
+<div class="bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Product Images</h3>
+
+    <!-- Current Images with SIMPLE removal -->
+    <% if @product.persisted? && @product.images.attached? %>
+    <div class="mb-4">
+        <h4 class="text-sm font-medium text-gray-700 mb-2">Current Images</h4>
+        <div class="grid grid-cols-4 gap-2">
+            <% @product.images.each do |image| %>
+            <div class="relative group">
+                <%= image_tag image, class: "aspect-square object-cover rounded-md border border-gray-200" %>
+                <div class="absolute top-1 right-1">
+                    <%= link_to "X", purge_attachment_path(image), 
+                        method: :delete,
+                        data: { 
+                          turbo_method: :delete,
+                          turbo_confirm: "Are you sure you want to remove this image?",
+                          turbo: "false"
+                        },
+                        class: "bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold border border-white cursor-pointer" %>
+                </div>
+            </div>
+            <% end %>
+        </div>
+    </div>
+    <% end %>
+
+    <!-- New Images -->
+    <div class="space-y-4">
+        <%= form.label :images, "Product Images", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.file_field :images, 
+            multiple: true, 
+            accept: "image/*",
+            class: "mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" %>
+        <p class="text-sm text-gray-500">
+            Upload up to 5 high-quality images of your product.
+        </p>
+    </div>
+</div>
+
+<!-- Form Actions -->
+<div class="flex justify-between space-x-4 pt-6 border-t">
+    <%= link_to "Cancel", @product.persisted? ? product_path(@product) : products_path, 
+            class: "px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium transition-colors" %>
+    <%= form.submit @product.persisted? ? "Update Product" : "Create Product", 
+            class: "px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium transition-colors cursor-pointer" %>
+</div>
+<% end %>
+
+<script>
+    // Ensure CSRF token is included in all requests
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Override fetch to include CSRF token
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            if (args[1] && args[1].method && args[1].method !== 'GET') {
+                args[1].headers = {
+                    ...args[1].headers,
+                    'X-CSRF-Token': token
+                };
+            }
+            return originalFetch.apply(this, args);
+        };
+    });
+</script>

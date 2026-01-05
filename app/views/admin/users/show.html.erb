@@ -1,0 +1,116 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-6">
+        <%= link_to '← Back to Users', admin_users_path, class: "text-green-600 hover:text-green-700 font-medium" %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">User Details</h1>
+            <div class="flex space-x-3">
+                <% if @user.present? %>
+                <%= link_to 'Edit', edit_admin_user_path(@user), class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+                <%= button_to 'Delete', admin_user_path(@user), method: :delete, 
+              data: { confirm: 'Are you sure you want to delete this user?' }, 
+              class: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+                <% end %>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- User Info -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @user.name %></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @user.email %></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Location</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @user.location %></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Role</label>
+                        <span class="inline-block mt-1 px-3 py-1 bg-<%= @user.admin? ? 'purple' : @user.supplier? ? 'green' : 'blue' %>-100 text-<%= @user.admin? ? 'purple' : @user.supplier? ? 'green' : 'blue' %>-800 text-sm font-medium rounded-full capitalize">
+                            <%= @user.role %>
+                        </span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Member Since</label>
+                        <p class="mt-1 text-sm text-gray-900"><%= @user.created_at.strftime("%B %d, %Y") %></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add this section -->
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Verification Status</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Email Verified</p>
+                        <p class="mt-1">
+                            <%= @user.email_verified? ? 
+          '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Yes</span>'.html_safe : 
+          '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">No</span>'.html_safe %>
+                        </p>
+                        <% if @user.email_verified? %>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Verified on <%= @user.email_verified_at.strftime('%B %d, %Y at %H:%M') %>
+                        </p>
+                        <% end %>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Verification Attempts</p>
+                        <p class="mt-1 text-lg font-semibold"><%= @user.verification_attempts %> / 5</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Stats -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">User Statistics</h2>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm font-medium text-gray-700">Products Listed</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= @user.products.count %></p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm font-medium text-gray-700">Reviews Written</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= @user.reviews.count %></p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm font-medium text-gray-700">Orders Placed</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= @user.orders.count %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User's Products -->
+        <% if @user.products.any? %>
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">User's Products</h2>
+            <div class="space-y-3">
+                <% @user.products.each do |product| %>
+                <div class="flex items-center justify-between border-b pb-3 last:border-b-0">
+                    <div>
+                        <p class="font-medium text-gray-900"><%= product.name %></p>
+                        <p class="text-sm text-gray-600">
+                            <%= number_to_currency(product.price) %> / <%= product.unit %> •
+                            <span class="<%= product.in_stock? ? 'text-green-600' : 'text-red-600' %>">
+                                <%= product.in_stock? ? 'In Stock' : 'Out of Stock' %>
+                            </span>
+                        </p>
+                    </div>
+                    <%= link_to 'View', product_path(product), class: "text-green-600 hover:text-green-700 text-sm" %>
+                </div>
+                <% end %>
+            </div>
+        </div>
+        <% end %>
+    </div>
+</div>
