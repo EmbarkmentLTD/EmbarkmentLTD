@@ -170,13 +170,14 @@ class User < ApplicationRecord
     save!
     
     # Send verification email
-    UserMailer.verification_email(self).deliver_now
+    UserMailer.verification_email(self).deliver_later
     
     true
   end
   
   def send_welcome_email
-    UserMailer.welcome_email(self).deliver_now
+    return unless Rails.env.production?
+    UserMailer.welcome_email(self).deliver_later
   end
   
   def send_verification_reminder
@@ -185,7 +186,7 @@ class User < ApplicationRecord
     self.last_verification_reminder_at = Time.current
     save!
     
-    UserMailer.verification_reminder(self).deliver_now
+    UserMailer.verification_reminder(self).deliver_later
     true
   end
   
@@ -262,7 +263,7 @@ class User < ApplicationRecord
   end
 
    # Add callbacks to send emails after user creation
-  after_create :send_initial_emails
+  after_create :send_initial_emails, on: :create
   after_update :send_verification_for_email_change, if: :saved_change_to_email?
   
   def send_initial_emails
