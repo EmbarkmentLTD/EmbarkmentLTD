@@ -14,6 +14,7 @@ admin = User.create!(
   password: 'admin123',
   location: 'Springfield, IL',
   role: 'admin'
+  confirmed_at: Time.now
 )
 
 # Create sample suppliers
