@@ -1,3 +1,5 @@
+require 'dotenv/load' if ENV['RAILS_ENV'] == 'production'
+
 require_relative "boot"
 
 require "rails/all"

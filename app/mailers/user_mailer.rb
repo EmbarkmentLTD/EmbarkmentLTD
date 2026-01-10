@@ -1,6 +1,6 @@
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
-  default from: 'EmbarkmentLTD <company@llw-cs.com>'
+  default from: 'EmbarkmentLTD <info@embarkment.co.uk>'
 
   def welcome_email(user)
     @user = user
@@ -33,11 +33,21 @@ class UserMailer < ApplicationMailer
   
   private
   
-  def verification_url
-    Rails.application.routes.url_helpers.verification_url(host: host)
-  end
+#   def verification_url
+#     Rails.application.routes.url_helpers.verification_url(host: host, protocol: protocol)
+#   end
   
-  def host
-    Rails.env.production? ? 'llw-cs.com' : 'localhost:3000'
-  end
+#   def host
+#     Rails.env.production? ? 'embarkment.co.uk' : 'localhost:3000'
+#   end
+
+#   def protocol
+#   Rails.env.production? ? 'https' : 'http'
+# end
+
+def verification_url
+  Rails.application.routes.url_helpers.verification_url(
+    Rails.application.config.action_mailer.default_url_options
+  )
+end
 end
