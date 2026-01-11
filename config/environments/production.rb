@@ -3,6 +3,11 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+
+  config.require_master_key = false  # Temporarily disable for testing
+
+config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
+
   # Code is not reloaded between requests.
   config.enable_reloading = false
 
@@ -50,7 +55,7 @@ Rails.application.configure do
   config.cache_store = :solid_cache_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :inline # :solid_queue
+  config.active_job.queue_adapter = :solid_queue # :inline 
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
 

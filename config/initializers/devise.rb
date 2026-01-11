@@ -33,6 +33,8 @@ Devise.setup do |config|
 
   config.scoped_views = true
 
+  config.secret_key = ENV.fetch("DEVISE_SECRET_KEY")
+
 
   # Configure the parent class responsible to send e-mails.
   # config.parent_mailer = 'ActionMailer::Base'
