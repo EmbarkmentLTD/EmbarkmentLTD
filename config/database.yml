@@ -105,18 +105,26 @@ production:
     database: embarkment_ltd_production
     username: embarkment_ltd
     password: <%= ENV["PRIMARY_DB_PASSWORD"] %>
+    host: <%= ENV["PRIMARY_DB_HOST"] %>
+    port: <%= ENV.fetch("PRIMARY_DB_PORT") { 5432 } %>
   cache:
     <<: *primary_production
     database: embarkment_ltd_production_cache
-    username: embarkment_ltd_cache
+    username: <%= ENV["CACHE_DB_USERNAME"] %>
     password: <%= ENV["CACHE_DB_PASSWORD"] %>
+    host: <%= ENV["CACHE_DB_HOST"] %>
+    port: <%= ENV.fetch("CACHE_DB_PORT") { 5432 } %>
   queue:
     <<: *primary_production
     database: embarkment_ltd_production_queue
     username: embarkment_ltd_queue
     password: <%= ENV["QUEUE_DB_PASSWORD"] %>
+    host: <%= ENV["QUEUE_DB_HOST"] %>
+    port: <%= ENV.fetch("QUEUE_DB_PORT") { 5432 } %>
   cable:
     <<: *primary_production
     database: embarkment_ltd_production_cable
     username: embarkment_ltd_cable
     password: <%= ENV["CABLE_DB_PASSWORD"] %>
+    host: <%= ENV["CABLE_DB_HOST"] %>
+    port: <%= ENV.fetch("CABLE_DB_PORT") { 5432 } %>

@@ -3,47 +3,148 @@
 
 <head>
     <title>EmbarkmentLTD - Fresh Produce Marketplace</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <!-- FAVICON FOR BROWSER TABS -->
+  <%= favicon_link_tag 'favicon.ico' %>
+  
+  <!-- APPLE TOUCH ICON FOR iOS & WHATSAPP -->
+  <link rel="apple-touch-icon" sizes="180x180" href="<%= asset_path('logo/logo2.png') %>">
+  
+  <!-- PWA MANIFEST -->
+  <link rel="manifest" href="/manifest.json">
+  
+  
+      <style>
+        :root {
+            --text-xs: 0.75rem;   /* 12px */
+            --text-sm: 0.875rem;  /* 14px */
+            --text-base: 1rem;    /* 16px */
+            --text-lg: 1.125rem;  /* 18px */
+            --text-xl: 1.25rem;   /* 20px */
+            --text-2xl: 1.5rem;   /* 24px */
+            --text-3xl: 1.875rem; /* 30px */
+            --text-4xl: 2.25rem;  /* 36px */
+        }
+        
+        @media (max-width: 640px) {
+            .responsive-text {
+                font-size: var(--text-base) !important;
+            }
+            h1 { font-size: var(--text-2xl) !important; }
+            h2 { font-size: var(--text-xl) !important; }
+            h3 { font-size: var(--text-lg) !important; }
+        }
+      </style>
+
     <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
-
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
 
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true, async: true %>
+
+    <link rel="preconnect" href="https://unpkg.com">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 
 <body class="bg-gray-50">
     <div class="min-h-screen flex flex-col">
         <style>
-            /* Ensure page is a column flex container and main fills remaining space so footer stays at bottom */
-            body {
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
+            /* MOBILE HAMBURGER MENU STYLES */
+            /* Hide mobile menu by default */
+            .mobile-menu {
+                display: none;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: opacity 0.3s ease, transform 0.3s ease;
             }
-
-            main {
-                flex: 1 1 auto;
+            
+            /* Show mobile menu when active */
+            .mobile-menu.active {
+                display: block;
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            # /* Prevent body scroll when menu is open */
+            # body.menu-open {
+            #     overflow: hidden;
+            # }
+            
+            /* Hamburger icon animation */
+            .hamburger span {
+                display: block;
+                width: 25px;
+                height: 3px;
+                background-color: #374151;
+                margin: 5px 0;
+                transition: 0.3s;
+            }
+            
+            .hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+            
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(7px, -7px);
+            }
+            
+            # /* Mobile menu overlay */
+            # .mobile-menu-overlay {
+            #     position: fixed;
+            #     top: 0;
+            #     left: 0;
+            #     right: 0;
+            #     bottom: 0;
+            #     background: rgba(0, 0, 0, 0.5);
+            #     z-index: 40;
+            #     display: none;
+            # }
+            
+            .mobile-menu-overlay.active {
+                display: block;
+            }
+            
+            /* Ensure proper mobile layout */
+            @media (max-width: 768px) {
+                body {
+                    font-size: 16px; /* Base font size for mobile */
+                    -webkit-text-size-adjust: 100%; /* Prevent iOS text resize */
+                    touch-action: manipulation; /* Remove 300ms delay on mobile */
+                }
+                
+                /* Prevent horizontal scrolling */
+                .container, main, .max-w-7xl {
+                    overflow-x: hidden;
+                    max-width: 100%;
+                }
             }
         </style>
+
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
         <!-- Header -->
-        <nav class="bg-white shadow-sm border-b">
+        <nav class="bg-white shadow-sm border-b sticky top-0 z-30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo -->
                     <div class="flex items-center">
                         <%= link_to root_path, class: "flex items-center space-x-2" do %>
-
-                        <span class="text-xl font-bold text-green-600"><%= image_tag "logo/logo_no_glow_or_shadow.png",
-      alt: "EmbarkmentLTD Logo",
-      class: "h-9 w-auto" %></span>
+                            <!-- MOBILE: SMALLER LOGO SIZE ON MOBILE -->
+                            <%= image_tag "logo/logo_no_glow_or_shadow.png", 
+                                alt: "EmbarkmentLTD Logo", 
+                                class: "h-8 md:h-9 w-auto", 
+                                loading: "lazy" %>
                         <% end %>
                     </div>
 
-                    <!-- Navigation -->
-                    <div class="flex items-center space-x-4">
+                    <!-- DESKTOP NAVIGATION - HIDDEN ON MOBILE, VISIBLE ON DESKTOP -->
+                    <div class="hidden md:flex items-center space-x-4">
                         <%= link_to 'Products', products_path, class: "text-gray-700 hover:text-green-600 px-3 py-2 rounded-md font-medium" %>
                         <%= link_to 'Our Mission', our_mission_path, class: "text-gray-700 hover:text-green-600 px-3 py-2 rounded-md font-medium" %>
                         <%= link_to 'About Us', about_us_path, class: "text-gray-700 hover:text-green-600 px-3 py-2 rounded-md font-medium" %>
@@ -64,8 +165,6 @@
                         <% end %>
                         <% end %>
 
-
-
                         <!-- Admin Link -->
                         <% if current_user.admin? %>
                         <%= link_to 'Dashboard', admin_dashboard_path, class: "text-gray-700 hover:text-green-600 px-3 py-2 rounded-md font-medium" %>
@@ -79,13 +178,58 @@
                         <%= link_to 'Sign Up', new_user_registration_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium" %>
                         <% end %>
                     </div>
+
+                    <!-- MOBILE: HAMBURGER MENU BUTTON - VISIBLE ONLY ON MOBILE -->
+                    <button class="md:hidden hamburger focus:outline-none z-50" id="hamburgerBtn" aria-label="Toggle menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MOBILE MENU - HIDDEN BY DEFAULT, SHOWS WHEN HAMBURGER CLICKED -->
+            <div class="mobile-menu md:hidden bg-white border-t shadow-lg" id="mobileMenu">
+                <div class="px-4 py-3 space-y-1">
+                    <%= link_to 'Products', products_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                    <%= link_to 'Our Mission', our_mission_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                    <%= link_to 'About Us', about_us_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                    <%= link_to 'Contact Us', contact_us_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                    
+                    <% if user_signed_in? %>
+                        <% if current_user.can_supply? %>
+                            <%= link_to 'Sell', new_product_path, class: "block bg-green-600 hover:bg-green-700 text-white px-3 py-3 rounded-md font-medium my-2 text-center" %>
+                        <% end %>
+
+                        <%= link_to 'My Profile', profile_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                        
+                        <%= link_to quotation_cart_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b flex items-center justify-between" do %>
+                            <span>Quotation Cart</span>
+                            <% if quotation_items_count > 0 %>
+                                <span class="bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    <%= quotation_items_count %>
+                                </span>
+                            <% end %>
+                        <% end %>
+
+                        <% if current_user.admin? %>
+                            <%= link_to 'Dashboard', admin_dashboard_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                        <% end %>
+
+                        <%= button_to 'Logout', destroy_user_session_path, method: :delete, 
+                            class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium bg-transparent border-none w-full text-left border-b" %>
+                    <% else %>
+                        <%= link_to 'Login', new_user_session_path, class: "block text-gray-700 hover:text-green-600 px-3 py-3 rounded-md font-medium border-b" %>
+                        <%= link_to 'Sign Up', new_user_registration_path, class: "block bg-green-600 hover:bg-green-700 text-white px-3 py-3 rounded-md font-medium my-2 text-center" %>
+                    <% end %>
                 </div>
             </div>
         </nav>
 
         <!-- Flash Messages - Centered with Auto-Dismiss -->
+        <!-- MOBILE: ADJUSTED POSITIONING TO AVOID HAMBURGER MENU -->
         <% if notice %>
-        <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md flash-message">
+        <div class="fixed top-20 md:top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md flash-message">
             <div class="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg mx-4 text-center">
                 <div class="flex items-center justify-between">
                     <span class="font-medium flex-1"><%= notice %></span>
@@ -100,7 +244,7 @@
         <% end %>
 
         <% if alert %>
-        <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md flash-message">
+        <div class="fixed top-20 md:top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md flash-message">
             <div class="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg mx-4 text-center">
                 <div class="flex items-center justify-between">
                     <span class="font-medium flex-1"><%= alert %></span>
@@ -116,7 +260,7 @@
 
         <!-- ADD THE VERIFICATION FLASH MESSAGE HERE - RIGHT AFTER THE ALERT MESSAGES -->
         <% if user_signed_in? && !current_user.email_verified? && !request.path.include?('/verify') %>
-        <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-lg flash-message">
+        <div class="fixed top-32 md:top-20 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-lg flash-message">
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-lg mx-4">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -141,23 +285,82 @@
         <% end %>
 
         <script>
-            // Auto-dismiss flash messages after 5 seconds
-            document.addEventListener('DOMContentLoaded', function() {
-                const flashMessages = document.querySelectorAll('.flash-message');
+    // Auto-dismiss flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessages = document.querySelectorAll('.flash-message');
 
-                flashMessages.forEach(function(message) {
-                    setTimeout(function() {
-                        message.style.opacity = '0';
-                        message.style.transition = 'opacity 0.5s ease';
-                        setTimeout(function() {
-                            if (message.parentNode) {
-                                message.remove();
-                            }
-                        }, 500);
-                    }, 10000); // Changed to 10 seconds for verification messages
+        flashMessages.forEach(function(message) {
+            setTimeout(function() {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() {
+                    if (message.parentNode) {
+                        message.remove();
+                    }
+                }, 500);
+            }, 10000); // Changed to 10 seconds for verification messages
+        });
+
+        // HAMBURGER MENU FUNCTIONALITY - SIMPLIFIED VERSION
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        const body = document.body;
+        
+        if (hamburgerBtn && mobileMenu) {
+            function toggleMenu() {
+                const isOpen = mobileMenu.classList.contains('active');
+                hamburgerBtn.classList.toggle('active', !isOpen);
+                mobileMenu.classList.toggle('active', !isOpen);
+                mobileMenuOverlay.classList.toggle('active', !isOpen);
+                body.classList.toggle('menu-open', !isOpen);
+            }
+            
+            function closeMenu() {
+                hamburgerBtn.classList.remove('active');
+                mobileMenu.classList.remove('active');
+                mobileMenuOverlay.classList.remove('active');
+                body.classList.remove('menu-open');
+            }
+            
+            // Toggle menu on hamburger click
+            hamburgerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+            });
+            
+            // Close menu when clicking overlay
+            mobileMenuOverlay.addEventListener('click', function(e) {
+                e.preventDefault();
+                closeMenu();
+            });
+            
+            // Close menu when clicking a link in mobile menu (but let the link work)
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function() {
+                    // Only close menu, don't prevent default
+                    setTimeout(closeMenu, 300);
                 });
             });
-        </script>
+            
+            // For logout button (form submission)
+            mobileMenu.querySelectorAll('button[type="submit"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Let the form submit normally, close menu after a delay
+                    setTimeout(closeMenu, 100);
+                });
+            });
+            
+            // Close menu on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+                    closeMenu();
+                }
+            });
+        }
+    });
+</script>
 
         <!-- Main Content -->
         <main class="flex-grow">
