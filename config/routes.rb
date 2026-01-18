@@ -47,7 +47,7 @@ Rails.application.routes.draw do
   get '/my_products', to: 'products#my_products'
 
   # Support Chat Routes
-  post '/support_chat_messages', to: 'support_chat_messages#create'
+  post '/support_chat_messages', to: 'support_chat_messages#create' 
   
   # Support Dashboard Routes - FIXED: Remove namespace and use simple routes
   get '/support/dashboard', to: 'support_dashboard#index', as: 'support_dashboard'
