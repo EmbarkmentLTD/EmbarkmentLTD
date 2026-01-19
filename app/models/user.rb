@@ -20,6 +20,14 @@ class User < ApplicationRecord
 
   before_create :generate_serial_number
 
+  # Keep Devise validations but add extra validation
+  validates :email, 
+    'valid_email_2/email': { 
+      disposable: { message: "Temporary/disposable emails are not allowed" },
+      mx: false,         # Don't check MX records (faster)
+      disallow_subaddressing: false  # Allow plus addressing (user+tag@gmail.com)
+    }
+    
   validates :name, presence: true
   validates :location, presence: true
   validates :email_verification_code, length: { is: 6 }, allow_nil: true
