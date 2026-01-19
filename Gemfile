@@ -38,6 +38,8 @@ gem 'whenever', require: false
 gem 'mail'
 gem 'sendgrid-ruby'
 gem 'sendgrid-actionmailer', '~> 2.0'
+# Add this instead
+gem 'valid_email2'
 
 
 # Reduces boot times through caching; required in config/boot.rb

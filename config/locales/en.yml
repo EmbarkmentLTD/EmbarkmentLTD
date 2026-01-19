@@ -28,4 +28,12 @@
 #       enabled: "ON"
 
 en:
-  hello: "Hello world"
+  activerecord:
+    errors:
+      models:
+        user:
+          attributes:
+            email:
+              invalid: "Please enter a valid email address"
+              taken: "This email is already registered"
+              disposable_email: "Temporary/disposable emails are not allowed. Please use a permanent email address like Gmail, Outlook, or Yahoo."
