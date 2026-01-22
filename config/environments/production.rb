@@ -4,9 +4,13 @@ Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
 
-  config.require_master_key = false  # Temporarily disable for testing
+  # config.require_master_key = false  # Temporarily disable for testing
 
-config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
+  config.require_master_key = true
+
+# config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
+  config.secret_key_base = ENV.fetch("SECRET_KEY_BASE")
+
 
   # Code is not reloaded between requests.
   config.enable_reloading = false
@@ -52,10 +56,12 @@ config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_place
   config.active_support.report_deprecations = false
 
   # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  # config.cache_store = :solid_cache_store
+  config.cache_store = ENV["CACHE_READY"] == "true" ? :solid_cache_store : :memory_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue # :inline 
+  # config.active_job.queue_adapter = :solid_queue # :inline 
+  config.active_job.queue_adapter = :inline unless ENV["QUEUE_DATABASE_READY"] == "true"
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
 
@@ -70,7 +76,13 @@ config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_place
   config.action_mailer.raise_delivery_errors = false
   
   # Use SMTP delivery (not sendgrid_actionmailer)
-  config.action_mailer.delivery_method = :smtp
+  #config.action_mailer.delivery_method = :smtp
+
+  if ENV["SMTP_ENABLED"] == "true"
+    config.action_mailer.delivery_method = :smtp
+  else
+    config.action_mailer.delivery_method = :test
+  end
   
   # GoDaddy SMTP Settings - Port 587 with STARTTLS
   config.action_mailer.smtp_settings = {
@@ -98,7 +110,9 @@ config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_place
     read_timeout: 30,
     
     # Optional: Disable SSL certificate verification if needed
-    openssl_verify_mode: 'none'
+    # openssl_verify_mode: 'none'
+
+    openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
   }
   
   # Default email headers
