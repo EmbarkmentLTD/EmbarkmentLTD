@@ -1,5 +1,6 @@
 # require 'dotenv/load' if ENV['RAILS_ENV'] == 'production'
-require 'dotenv/load'
+#require 'dotenv/load'
+require 'dotenv/load' if Rails.env.development? || Rails.env.test?
 
 require_relative "boot"
 
