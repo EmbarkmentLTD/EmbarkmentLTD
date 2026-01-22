@@ -33,7 +33,7 @@ Devise.setup do |config|
 
   config.scoped_views = true
 
-  config.secret_key = ENV.fetch("DEVISE_SECRET_KEY")
+  config.secret_key = ENV.fetch("DEVISE_SECRET_KEY") || Rails.application.secret_key_base
 
 
   # Configure the parent class responsible to send e-mails.

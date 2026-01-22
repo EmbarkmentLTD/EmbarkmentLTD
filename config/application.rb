@@ -1,6 +1,6 @@
 # require 'dotenv/load' if ENV['RAILS_ENV'] == 'production'
 #require 'dotenv/load'
-require 'dotenv/load' if Rails.env.development? || Rails.env.test?
+require 'dotenv/load' if ENV['RAILS_ENV'] == 'development' || ENV['RAILS_ENV'] == 'test'
 
 require_relative "boot"
 
@@ -32,5 +32,17 @@ module EmbarkmentLtd
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+   primary = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
+    deterministic = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
+    salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
+
+    if primary.present? && deterministic.present? && salt.present?
+      if [primary, deterministic, salt].all? { |k| k.match?(/\A[0-9a-f]+\z/i) }
+        config.active_record.encryption.primary_key = [primary].pack("H*")
+        config.active_record.encryption.deterministic_key = [deterministic].pack("H*")
+        config.active_record.encryption.key_derivation_salt = [salt].pack("H*")
+      end
+    end
   end
 end
