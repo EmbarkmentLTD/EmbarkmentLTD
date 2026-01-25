@@ -6,7 +6,7 @@ Rails.application.configure do
 
   # config.require_master_key = false  # Temporarily disable for testing
 
-  config.require_master_key = true
+  config.require_master_key = false
 
 # config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
   config.secret_key_base = ENV.fetch("SECRET_KEY_BASE")
