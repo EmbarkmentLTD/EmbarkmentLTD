@@ -36,8 +36,6 @@ gem 'rack-cors'
 gem "tailwindcss-rails", "~> 2.3"
 gem 'whenever', require: false
 gem 'mail'
-gem 'sendgrid-ruby'
-gem 'sendgrid-actionmailer', '~> 2.0'
 # Add this instead
 gem 'valid_email2'
 
