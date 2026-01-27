@@ -7,8 +7,8 @@
                 <%= image_tag "logo/logo_no_glow_or_shadow.png", alt: "EmbarkmentLTD Logo", class: "inline-block h-10 w-auto" %>
             </span>
             <% end %>
-            <h2 class="mt-6 text-2xl font-bold text-gray-900">Verify Your Email</h2>
-            <p class="mt-2 text-sm text-gray-600">Enter the 6-digit code sent to your email</p>
+            <h2 class="mt-6 text-2xl font-bold text-gray-900">Verify Your Account</h2>
+            <p class="mt-2 text-sm text-gray-600">Enter the 6-digit code displayed on your screen</p>
         </div>
 
         <!-- Verification Card -->
@@ -37,13 +37,13 @@
                     <input type="text" name="verification_code" id="verification_code" maxlength="6" pattern="\d{6}" required class="text-center text-3xl font-bold tracking-widest px-4 py-3 w-48 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="000000" autocomplete="off">
                 </div>
                 <p class="text-xs text-gray-500 mt-2 text-center">
-                    Check your email for the code. It expires in 1 hour.
+                    Check the top of your screen for the code. It expires in 1 hour.
                 </p>
             </div>
 
             <div>
                 <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors cursor-pointer">
-                    Verify Email
+                    Verify Account
                 </button>
             </div>
             <% end %>

@@ -1,25 +1,25 @@
 class Admin::PagesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin
-  before_action :set_page, only: [:edit, :update]
-  
+  before_action :set_page, only: [ :edit, :update ]
+
   def edit
   end
-  
+
   def update
     if @page.update(page_params)
-      redirect_to send("#{@page.slug.underscore}_path"), notice: 'Page updated successfully.'
+      redirect_to send("#{@page.slug.underscore}_path"), notice: "Page updated successfully."
     else
       render :edit
     end
   end
-  
+
   private
-  
+
   def set_page
     # Find by slug or create it if it doesn't exist
     @page = Page.find_by(slug: params[:id])
-    
+
     # If page doesn't exist, create it with default content
     unless @page
       @page = Page.create!(
@@ -29,18 +29,18 @@ class Admin::PagesController < ApplicationController
       )
     end
   end
-  
+
   def page_params
     params.require(:page).permit(:title, :content)
   end
-  
+
   def require_admin
-    redirect_to root_path, alert: 'Not authorized.' unless current_user.admin?
+    redirect_to root_path, alert: "Not authorized." unless current_user.admin?
   end
 
   def default_content(slug)
     case slug
-    when 'contact-us'
+    when "contact-us"
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>Contact Us</h1>
         <div class='grid grid-cols-1 md:grid-cols-2 gap-8'>
@@ -68,14 +68,14 @@ class Admin::PagesController < ApplicationController
           </div>
         </div>
       </div>"
-    when 'our-mission'
+    when "our-mission"
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>Our Mission</h1>
         <div class='bg-white rounded-xl shadow-sm p-8'>
           <div class='prose prose-lg max-w-none'>
             <h2 class='text-2xl font-semibold text-green-600 mb-4'>Connecting Farmers & Consumers</h2>
             <p class='text-gray-700 mb-6'>At EmbarkmentLTD, we believe in creating a sustainable future by bridging the gap between local farmers and conscious consumers.</p>
-            
+
             <div class='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
               <div class='bg-green-50 rounded-lg p-6'>
                 <h3 class='text-xl font-semibold text-gray-800 mb-3'>🌱 For Farmers</h3>
@@ -97,14 +97,14 @@ class Admin::PagesController < ApplicationController
           </div>
         </div>
       </div>"
-    when 'about-us'
+    when "about-us"
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>About Us</h1>
         <div class='bg-white rounded-xl shadow-sm p-8'>
           <div class='prose prose-lg max-w-none'>
             <h2 class='text-2xl font-semibold text-green-600 mb-4'>Our Story</h2>
             <p class='text-gray-700 mb-6'>EmbarkmentLTD was founded with a simple mission: to create a direct connection between local farmers and their communities.</p>
-            
+
             <p class='text-gray-700 mb-6'>We believe that everyone deserves access to fresh, high-quality produce while supporting the hardworking farmers who grow our food.</p>
 
             <div class='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>

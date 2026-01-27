@@ -40,35 +40,35 @@ begin
     subject 'EmbarkmentLTD - Verification Code Test'
     body    "Your verification code is: #{verification_code}\n\nPlease enter this code at https://llw-cs.com/verify"
   end
-  
+
   puts "Attempting to send..."
   mail.deliver!
-  
+
   puts ""
   puts "✅ SUCCESS: Email sent!"
   puts "Check #{test_email} inbox (and spam folder)"
   puts "Code should arrive within 1-2 minutes"
-  
+
 rescue => e
   puts ""
   puts "❌ FAILED: #{e.class}: #{e.message}"
-  
+
   # Try alternative port 465
   puts "\nTrying port 465 (SSL)..."
   begin
     smtp_config[:port] = 465
     smtp_config[:ssl] = true
     smtp_config[:enable_starttls_auto] = false
-    
+
     Mail.defaults { delivery_method :smtp, smtp_config }
-    
+
     mail2 = Mail.new do
       from    'company@llw-cs.com'
       to      test_email
       subject 'EmbarkmentLTD - SSL Test'
       body    "SSL test email"
     end
-    
+
     mail2.deliver!
     puts "✅ SSL email sent via port 465"
   rescue => e2

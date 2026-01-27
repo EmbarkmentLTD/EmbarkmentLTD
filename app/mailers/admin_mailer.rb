@@ -2,8 +2,8 @@
 class AdminMailer < ApplicationMailer
   def new_chat_message(chat_data)
     @chat_data = chat_data
-    admin_emails = User.where(role: 'admin').pluck(:email)
-    
+    admin_emails = User.where(role: "admin").pluck(:email)
+
     if admin_emails.any?
       mail(
         to: admin_emails,
@@ -18,7 +18,7 @@ class AdminMailer < ApplicationMailer
     @support_user = support_user
     @message = message
     @sender = message.sender
-    
+
     mail(
       to: support_user.email,
       subject: "New Support Message from #{@sender.name}"
@@ -29,7 +29,7 @@ class AdminMailer < ApplicationMailer
     @user = user
     @message = message
     @support_user = message.sender
-    
+
     mail(
       to: user.email,
       subject: "Support Response from #{@support_user.name}"

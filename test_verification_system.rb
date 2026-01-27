@@ -27,7 +27,7 @@ puts "\n2. Testing verification email..."
 begin
   user.send_verification_code
   puts "✅ Verification code generated: #{user.email_verification_code}"
-  
+
   UserMailer.verification_email(user).deliver_now
   puts "✅ Verification email sent!"
 rescue => e

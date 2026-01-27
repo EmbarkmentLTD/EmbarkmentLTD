@@ -8,14 +8,14 @@ puts "   SMTP_PASSWORD: #{ENV['SMTP_PASSWORD'] ? 'SET (hidden)' : 'NOT SET'}"
 puts "   PRODUCTION_DOMAIN: #{ENV['PRODUCTION_DOMAIN'] || 'NOT SET'}"
 
 # Test 2: Test GoDaddy SMTP with different ports
-ports = [465, 587, 25]
+ports = [ 465, 587, 25 ]
 puts "\n2. Testing GoDaddy SMTP ports:"
 
 ports.each do |port|
   puts "\n   Testing port #{port}..."
   begin
     require 'net/smtp'
-    
+
     # Try connection without authentication first
     Timeout.timeout(5) do
       socket = TCPSocket.new('smtpout.secureserver.net', port)
@@ -55,10 +55,10 @@ begin
     subject 'GoDaddy Diagnostic Test'
     body    'Testing GoDaddy SMTP settings'
   end
-  
+
   mail.deliver!
   puts "   ✅ Email sent successfully!"
-  
+
 rescue Net::SMTPAuthenticationError => e
   puts "   ❌ Authentication failed: #{e.message}"
   puts "   This means your username/password are incorrect."
@@ -66,7 +66,7 @@ rescue Net::SMTPAuthenticationError => e
   puts "   1. Username should be FULL email: company@llw-cs.com"
   puts "   2. Password is correct for company@llw-cs.com"
   puts "   3. Account exists and is active"
-  
+
 rescue => e
   puts "   ❌ Error: #{e.class}: #{e.message}"
 end

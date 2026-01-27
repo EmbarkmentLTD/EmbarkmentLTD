@@ -8,7 +8,7 @@ Rails.application.configure do
 
   config.require_master_key = false
 
-# config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
+  # config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
   config.secret_key_base = ENV.fetch("SECRET_KEY_BASE")
 
 
@@ -34,10 +34,10 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  #config.assume_ssl = true
+  # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  #config.force_ssl = true
+  # config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -60,7 +60,7 @@ Rails.application.configure do
   config.cache_store = ENV["CACHE_READY"] == "true" ? :solid_cache_store : :memory_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  # config.active_job.queue_adapter = :solid_queue # :inline 
+  # config.active_job.queue_adapter = :solid_queue # :inline
   config.active_job.queue_adapter = :inline unless ENV["QUEUE_DATABASE_READY"] == "true"
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
@@ -70,76 +70,76 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # EMAIL CONFIGURATION - GO DADDY SMTP
   # ====================================
-  
+
   # Enable email delivery
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = false
-  
+
   # Use SMTP delivery (not sendgrid_actionmailer)
-  #config.action_mailer.delivery_method = :smtp
+  # config.action_mailer.delivery_method = :smtp
 
   if ENV["SMTP_ENABLED"] == "true"
     config.action_mailer.delivery_method = :smtp
   else
     config.action_mailer.delivery_method = :test
   end
-  
+
   # GoDaddy SMTP Settings - Port 587 with STARTTLS
   config.action_mailer.smtp_settings = {
     # Server address
-    address: 'smtpout.secureserver.net',
-    
+    address: "smtpout.secureserver.net",
+
     # Port 587 for STARTTLS (recommended)
     port: 587,
-    
+
     # Your GoDaddy domain
-    domain: 'llw-cs.com',
-    
+    domain: "llw-cs.com",
+
     # Your GoDaddy email credentials
-    user_name: 'company@llw-cs.com',
-    password: 'Consultancy25$',
-    
+    user_name: "company@llw-cs.com",
+    password: "Consultancy25$",
+
     # Authentication type (GoDaddy uses PLAIN)
     authentication: :plain,
-    
+
     # Enable STARTTLS for secure connection
     enable_starttls_auto: true,
-    
+
     # Timeout settings
     open_timeout: 30,
     read_timeout: 30,
-    
+
     # Optional: Disable SSL certificate verification if needed
     # openssl_verify_mode: 'none'
 
     openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
   }
-  
+
   # Default email headers
   config.action_mailer.default_options = {
-    from: 'EmbarkmentLTD <company@llw-cs.com>',
-    reply_to: 'company@llw-cs.com'
+    from: "EmbarkmentLTD <company@llw-cs.com>",
+    reply_to: "company@llw-cs.com"
   }
-  
+
   # URL options for links in emails
   config.action_mailer.default_url_options = {
-    host: 'llw-cs.com',
-    protocol: 'https'
+    host: "llw-cs.com",
+    protocol: "https"
   }
 
 
-#   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-#   config.action_mailer.delivery_method = :sendgrid_actionmailer
+  #   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
+  #   config.action_mailer.delivery_method = :sendgrid_actionmailer
 
-#   config.action_mailer.default_options = {
-#   from: 'EmbarkmentLTD <company@llw-cs.com>',
-#   reply_to: 'company@llw-cs.com'
-# }
+  #   config.action_mailer.default_options = {
+  #   from: 'EmbarkmentLTD <company@llw-cs.com>',
+  #   reply_to: 'company@llw-cs.com'
+  # }
 
-# config.action_mailer.default_url_options = {
-#   host: 'llw-cs.com',
-#   protocol: 'https'
-# }
+  # config.action_mailer.default_url_options = {
+  #   host: 'llw-cs.com',
+  #   protocol: 'https'
+  # }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

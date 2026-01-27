@@ -28,7 +28,7 @@ begin
   puts "Sending email..."
   mail.deliver!
   puts "✅ Email sent successfully using mail gem!"
-  
+
 rescue => e
   puts "❌ Error: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(5).join("\n")}"

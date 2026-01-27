@@ -78,53 +78,32 @@ test:
 #
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
-# 4
-# production:
-#   primary: &primary_production
-#     <<: *default
-#     database: embarkment_ltd_production
-#     username: embarkment_ltd
-#     password: <%= ENV["EMBARKMENT_LTD_DATABASE_PASSWORD"] %>
-#   cache:
-#     <<: *primary_production
-#     database: embarkment_ltd_production_cache
-#     migrations_paths: db/cache_migrate
-#   queue:
-#     <<: *primary_production
-#     database: embarkment_ltd_production_queue
-#     migrations_paths: db/queue_migrate
-#   cable:
-#     <<: *primary_production
-#     database: embarkment_ltd_production_cable
-#     migrations_paths: db/cable_migrate
-
-
 production:
   primary: &primary_production
     <<: *default
     database: embarkmentltd_dbs
     username: embarkmentltd_dbs_user
     password: <%= ENV["PRIMARY_DB_PASSWORD"] %>
-    host: <%= ENV["PRIMARY_DB_HOST"] %>
-    port: <%= ENV.fetch("PRIMARY_DB_PORT") { 5432 } %>
+    host: 127.0.0.1
+    port: 5432
   cache:
     <<: *primary_production
     database: embarkmentltd_dbs
-    username: <%= ENV["CACHE_DB_USERNAME"] %>
+    username: embarkmentltd_dbs_user
     password: <%= ENV["CACHE_DB_PASSWORD"] %>
-    host: <%= ENV["CACHE_DB_HOST"] %>
-    port: <%= ENV.fetch("CACHE_DB_PORT") { 5432 } %>
+    host: 127.0.0.1
+    port: 5432
   queue:
     <<: *primary_production
     database: embarkmentltd_dbs
     username: embarkmentltd_dbs_user
     password: <%= ENV["QUEUE_DB_PASSWORD"] %>
-    host: <%= ENV["QUEUE_DB_HOST"] %>
-    port: <%= ENV.fetch("QUEUE_DB_PORT") { 5432 } %>
+    host: 127.0.0.1
+    port: 5432
   cable:
     <<: *primary_production
     database: embarkmentltd_dbs
     username: embarkmentltd_dbs_user
     password: <%= ENV["CABLE_DB_PASSWORD"] %>
-    host: <%= ENV["CABLE_DB_HOST"] %>
-    port: <%= ENV.fetch("CABLE_DB_PORT") { 5432 } %>
+    host: 127.0.0.1
+    port: 5432

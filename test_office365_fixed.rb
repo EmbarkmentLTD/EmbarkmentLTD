@@ -29,11 +29,11 @@ begin
     subject 'GoDaddy SMTP Test'
     body    'Testing GoDaddy SMTP configuration'
   end
-  
+
   puts "2. Attempting to send..."
   mail.deliver!
   puts "✅ Email sent successfully!"
-  
+
 rescue => e
   puts "❌ Error: #{e.class}: #{e.message}"
   puts "Backtrace:"

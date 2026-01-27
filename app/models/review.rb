@@ -4,9 +4,10 @@ class Review < ApplicationRecord
 
   validates :rating, presence: true,
                      numericality: { only_integer: true,
-                     greater_than: 0, 
+                     greater_than: 0,
                      less_than_or_equal_to: 5 }
   validates :comment, presence: true, length: { minimum: 10 }
+  validates :user_id, uniqueness: { scope: :product_id, message: "has already reviewed this product" }
 
   after_save :update_product_rating
   after_destroy :update_product_rating
@@ -18,7 +19,7 @@ class Review < ApplicationRecord
   private
 
   def update_product_rating
-     # Safe update without raising errors
+    # Safe update without raising errors
     product.update_average_rating if product&.persisted?
   end
 end

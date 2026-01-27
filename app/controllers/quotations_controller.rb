@@ -7,14 +7,14 @@ class QuotationsController < ApplicationController
 
   def submit_email_quotation
       @quotation_items = get_quotation_items
-  
+
   # Server-side validation
   if @quotation_items.empty?
-    redirect_to quotation_cart_path, alert: 'Please add at least one product to your quotation request.'
+    redirect_to quotation_cart_path, alert: "Please add at least one product to your quotation request."
     return
   end
 
-   # Debug: Check what we're receiving
+    # Debug: Check what we're receiving
     Rails.logger.info "Quotation params: #{quotation_params.inspect}"
     Rails.logger.info "Quotation items: #{@quotation_items.inspect}"
 
@@ -37,30 +37,30 @@ class QuotationsController < ApplicationController
     special_requirements: quotation_params[:special_requirements]
   }
 
-   # In production, you would send an email here
+    # In production, you would send an email here
     # QuotationMailer.quotation_request(quotation_data).deliver_later
     Rails.logger.info "Quotation request received: #{quotation_data}"
 
     # Clear quotation session
     session[:quotation] = {}
 
-    redirect_to root_path, notice: 'Quotation request sent successfully! We will contact you shortly.'
+    redirect_to root_path, notice: "Quotation request sent successfully! We will contact you shortly."
   end
 
   def remove_quotation_item
     product_id = params[:product_id]
     session[:quotation].delete(product_id)
-    redirect_to quotation_cart_path, notice: 'Item removed from quotation request.'
+    redirect_to quotation_cart_path, notice: "Item removed from quotation request."
   end
 
   private
 
   def get_quotation_items
   return {} unless session[:quotation].is_a?(Hash)
-  
+
   quotation = session[:quotation]
   items = {}
-  
+
   quotation.each do |product_id, quantity|
     begin
       product = Product.find(product_id)
@@ -70,7 +70,7 @@ class QuotationsController < ApplicationController
       next
     end
   end
-  
+
   items
 end
 

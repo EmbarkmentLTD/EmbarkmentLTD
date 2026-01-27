@@ -16,28 +16,28 @@ class Product < ApplicationRecord
   validate :must_have_at_least_one_image, on: :create
 
   CATEGORIES = {
-    'fruits' => 'Fruits',
-    'vegetables' => 'Vegetables', 
-    'grains' => 'Grains',
-    'herbs' => 'Herbs',
-    'nuts' => 'Nuts',
-    'dairy' => 'Dairy',
-    'meat' => 'Meat',
-    'other' => 'Other'
+    "fruits" => "Fruits",
+    "vegetables" => "Vegetables",
+    "grains" => "Grains",
+    "herbs" => "Herbs",
+    "nuts" => "Nuts",
+    "dairy" => "Dairy",
+    "meat" => "Meat",
+    "other" => "Other"
   }.freeze
 
-  UNITS = ['lb', 'kg', 'oz', 'piece', 'dozen', 'bunch', 'bag', 'box'].freeze
+  UNITS = [ "lb", "kg", "oz", "piece", "dozen", "bunch", "bag", "box" ].freeze
 
   scope :organic, -> { where(is_organic: true) }
-  scope :in_stock, -> { where('stock_quantity > 0') }
+  scope :in_stock, -> { where("stock_quantity > 0") }
   scope :featured, -> { where(featured: true) }
   scope :by_category, ->(category) { where(category: category) }
-  scope :search, ->(query) { 
-    where('name ILIKE ? OR description ILIKE ? OR location ILIKE ?', 
-          "%#{query}%", "%#{query}%", "%#{query}%") 
+  scope :search, ->(query) {
+    where("name ILIKE ? OR description ILIKE ? OR location ILIKE ?",
+          "%#{query}%", "%#{query}%", "%#{query}%")
   }
-   # Add these scopes and methods
-  scope :active, -> { where('stock_quantity > 0') }
+  # Add these scopes and methods
+  scope :active, -> { where("stock_quantity > 0") }
   scope :verified, -> { where(verified: true) }
 
   # Add verified attribute if not exists
@@ -53,24 +53,24 @@ class Product < ApplicationRecord
 
   def category_icon
     case category
-    when 'fruits' then '🍎'
-    when 'vegetables' then '🥕'
-    when 'grains' then '🌾'
-    when 'herbs' then '🌿'
-    when 'nuts' then '🥜'
-    when 'dairy' then '🥛'
-    when 'meat' then '🥩'
-    else '🌱'
+    when "fruits" then "🍎"
+    when "vegetables" then "🥕"
+    when "grains" then "🌾"
+    when "herbs" then "🌿"
+    when "nuts" then "🥜"
+    when "dairy" then "🥛"
+    when "meat" then "🥩"
+    else "🌱"
     end
   end
 
   def category_color
     case category
-    when 'fruits' then 'bg-red-100 text-red-800'
-    when 'vegetables' then 'bg-green-100 text-green-800'
-    when 'grains' then 'bg-yellow-100 text-yellow-800'
-    when 'herbs' then 'bg-blue-100 text-blue-800'
-    else 'bg-gray-100 text-gray-800'
+    when "fruits" then "bg-red-100 text-red-800"
+    when "vegetables" then "bg-green-100 text-green-800"
+    when "grains" then "bg-yellow-100 text-yellow-800"
+    when "herbs" then "bg-blue-100 text-blue-800"
+    else "bg-gray-100 text-gray-800"
     end
   end
 
@@ -109,17 +109,17 @@ end
 
   def validate_images
     return unless images.attached?
-    
+
     images.each do |image|
       if image.blob.byte_size > 5.megabytes
         errors.add(:images, "is too large (max 5MB per image)")
       end
-      
-      unless image.blob.content_type.starts_with?('image/')
+
+      unless image.blob.content_type.starts_with?("image/")
         errors.add(:images, "must be an image file")
       end
     end
-    
+
     if images.count > 5
       errors.add(:images, "cannot exceed 5 images")
     end
@@ -148,7 +148,7 @@ end
   private
 
   def generate_serial_number
-    self.serial_number = SerialNumberGenerator.generate_for('product')
+    self.serial_number = SerialNumberGenerator.generate_for("product")
   end
 
   def must_have_at_least_one_image
@@ -156,5 +156,4 @@ end
       errors.add(:images, "must have at least one image")
     end
   end
-
 end

@@ -1,7 +1,7 @@
 class Admin::UsersController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin
-  before_action :set_user, only: [:edit, :update, :destroy, :show]
+  before_action :set_user, only: [ :edit, :update, :destroy, :show ]
 
   def index
     @users = User.all.order(created_at: :desc).page(params[:page]).per(20)
@@ -10,12 +10,12 @@ class Admin::UsersController < ApplicationController
   def edit
     unless @user
         redirect_to admin_users_path, alert: "User not found."
-        return
+        nil
     end
   end
 
   def update
-    # If password is blank, remove it from params so we don't update it
+      # If password is blank, remove it from params so we don't update it
       update_params = user_params
       if update_params[:password].blank?
         update_params.delete(:password)
@@ -24,15 +24,14 @@ class Admin::UsersController < ApplicationController
 
       if @user.update(update_params)
         # Handle avatar removal
-        if params[:user][:remove_avatar] == '1'
+        if params[:user][:remove_avatar] == "1"
           @user.avatar.purge
         end
-        
-        redirect_to admin_user_path(@user), notice: 'User updated successfully.'
+
+        redirect_to admin_user_path(@user), notice: "User updated successfully."
       else
         render :edit, status: :unprocessable_entity
       end
-
   end
 
   def new
@@ -45,9 +44,9 @@ class Admin::UsersController < ApplicationController
       if @user.password.blank?
         @user.password = Devise.friendly_token.first(12) # Generate random password
       end
-      
+
       if @user.save
-        redirect_to admin_user_path(@user), notice: 'User created successfully.'
+        redirect_to admin_user_path(@user), notice: "User created successfully."
       else
         render :new, status: :unprocessable_entity
       end
@@ -59,7 +58,7 @@ class Admin::UsersController < ApplicationController
 
   def destroy
       @user.destroy
-      redirect_to admin_users_path, notice: 'User deleted successfully.'
+      redirect_to admin_users_path, notice: "User deleted successfully."
   end
 
 
@@ -70,7 +69,7 @@ class Admin::UsersController < ApplicationController
   end
 
   def require_admin
-    redirect_to root_path, alert: 'Not authorized.' unless current_user.admin?
+    redirect_to root_path, alert: "Not authorized." unless current_user.admin?
   end
 
   def user_params

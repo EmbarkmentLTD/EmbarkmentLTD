@@ -26,13 +26,13 @@ begin
     subject 'GoDaddy SMTP Test'
     body    'This is a test email sent via GoDaddy SMTP server.'
   end
-  
+
   puts "2. Attempting to send..."
   mail.deliver!
-  
+
   puts "✅ SUCCESS: Email sent via GoDaddy SMTP!"
   puts "Check your inbox (and spam folder)"
-  
+
 rescue => e
   puts "❌ FAILED: #{e.class}: #{e.message}"
   puts "\nTroubleshooting steps:"
