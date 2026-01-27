@@ -15,8 +15,10 @@
                     </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-gray-800 mb-2">Request via Email</h3>
-                <p class="text-gray-600 mb-4">Fill out a form and receive a detailed quotation via email</p>
-                <%= link_to "Email Quotation Request", quotation_cart_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200" %>
+                <p class="text-gray-600 mb-4">Open your email app with a pre-filled quotation request</p>
+                <% email_subject = "Quotation Request - #{@product.name}" %>
+                <% email_body = "Hello EmbarkmentLTD,%0D%0A%0D%0AI would like a quotation for:%0D%0AProduct: #{@product.name}%0D%0AQuantity: #{@quantity}%0D%0A%0D%0AThank you." %>
+                <%= link_to "Email Quotation Request", "mailto:info@embarkment.co.uk?subject=#{email_subject}&body=#{email_body}", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200" %>
             </div>
 
             <!-- WhatsApp Quotation -->
@@ -46,8 +48,7 @@
         const quantity = "<%= @quantity %>";
         const message = `Hello EmbarkmentLTD! I would like to get a quotation for:\n\nProduct: ${productName}\nQuantity: ${quantity}\n\nPlease send me the quotation details.`;
         const encodedMessage = encodeURIComponent(message);
-        // REPLACE 1234567890 with your actual WhatsApp number (country code + number without +)
-        const whatsappUrl = `https://wa.me/+4407944294761?text=${encodedMessage}`;
+        const whatsappUrl = `https://wa.me/447944294761?text=${encodedMessage}`;
 
         window.open(whatsappUrl, '_blank');
     }
