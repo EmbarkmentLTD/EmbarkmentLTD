@@ -1,7 +1,6 @@
 class Order < ApplicationRecord
+  STATUSES = [ "pending", "confirmed", "shipped", "delivered", "cancelled" ].freeze
 
-  STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].freeze
-  
   belongs_to :user
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
@@ -14,44 +13,44 @@ class Order < ApplicationRecord
   before_validation :set_default_status, on: :create
 
   # Add this scope
-  scope :completed_this_week, -> { where(status: ['delivered', 'completed', 'confirmed']).where('updated_at >= ?', 1.week.ago) }
+  scope :completed_this_week, -> { where(status: [ "delivered", "completed", "confirmed" ]).where("updated_at >= ?", 1.week.ago) }
 
   def calculate_total
     self.total_amount = order_items.sum(&:subtotal)
   end
 
   def set_default_status
-    self.status ||= 'pending'
+    self.status ||= "pending"
   end
 
   def confirm!
-    update(status: 'confirmed')
+    update(status: "confirmed")
     order_items.each do |item|
       item.product.reduce_stock(item.quantity)
     end
   end
 
   def can_cancel?
-    ['pending', 'confirmed'].include?(status)
+    [ "pending", "confirmed" ].include?(status)
   end
 
   def pending?
-    status == 'pending'
+    status == "pending"
   end
 
   def confirmed?
-    status == 'confirmed'
+    status == "confirmed"
   end
 
   def shipped?
-    status == 'shipped'
+    status == "shipped"
   end
 
   def delivered?
-    status == 'delivered'
+    status == "delivered"
   end
 
   def cancelled?
-    status == 'cancelled'
+    status == "cancelled"
   end
 end

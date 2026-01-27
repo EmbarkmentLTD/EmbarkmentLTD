@@ -28,16 +28,16 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
-gem 'devise', '~> 4.9'
-gem 'pundit', '~> 2.3'
-gem 'image_processing', '~> 1.2'
-gem 'kaminari', '~> 1.2'
-gem 'rack-cors'
+gem "devise", "~> 4.9"
+gem "pundit", "~> 2.3"
+gem "image_processing", "~> 1.2"
+gem "kaminari", "~> 1.2"
+gem "rack-cors"
 gem "tailwindcss-rails", "~> 2.3"
-gem 'whenever', require: false
-gem 'mail'
+gem "whenever", require: false
+gem "mail"
 # Add this instead
-gem 'valid_email2'
+gem "valid_email2"
 
 
 # Reduces boot times through caching; required in config/boot.rb
@@ -60,7 +60,7 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
-  gem 'dotenv-rails', groups: [:development, :production]
+  gem "dotenv-rails", groups: [ :development, :production ]
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false

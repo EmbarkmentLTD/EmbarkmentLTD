@@ -8,26 +8,26 @@ class User < ApplicationRecord
   has_many :order_items, through: :orders
 
 
- has_many :sent_messages, class_name: 'SupportMessage', 
-           foreign_key: 'sender_id', 
+ has_many :sent_messages, class_name: "SupportMessage",
+           foreign_key: "sender_id",
            dependent: :destroy,
            inverse_of: :sender
-  
-  has_many :received_messages, class_name: 'SupportMessage', 
-           foreign_key: 'receiver_id', 
+
+  has_many :received_messages, class_name: "SupportMessage",
+           foreign_key: "receiver_id",
            dependent: :destroy,
            inverse_of: :receiver
 
   before_create :generate_serial_number
 
   # Keep Devise validations but add extra validation
-  validates :email, 
-    'valid_email_2/email': { 
+  validates :email,
+    'valid_email_2/email': {
       disposable: { message: "Temporary/disposable emails are not allowed" },
       mx: false,         # Don't check MX records (faster)
       disallow_subaddressing: false  # Allow plus addressing (user+tag@gmail.com)
     }
-    
+
   validates :name, presence: true
   validates :location, presence: true
   validates :email_verification_code, length: { is: 6 }, allow_nil: true
@@ -36,21 +36,21 @@ class User < ApplicationRecord
 
   has_one_attached :avatar
 
-  ROLES = ['buyer', 'supplier', 'admin', 'support'].freeze
+  ROLES = [ "buyer", "supplier", "admin", "support" ].freeze
 
   # Add this scope for the product owner dropdown
-  scope :suppliers, -> { where(role: ['supplier', 'admin']) }
-  scope :support_staff, -> { where(role: ['support', 'admin']) }
-  scope :active_this_week, -> { where('updated_at >= ?', 1.week.ago) }
-  
-   # Add these constants
+  scope :suppliers, -> { where(role: [ "supplier", "admin" ]) }
+  scope :support_staff, -> { where(role: [ "support", "admin" ]) }
+  scope :active_this_week, -> { where("updated_at >= ?", 1.week.ago) }
+
+  # Add these constants
   VERIFICATION_CODE_EXPIRY = 1.hour
   MAX_VERIFICATION_ATTEMPTS = 5
   REMINDER_DELAY = 24.hours
 
 
   def support?
-    role == 'support'
+    role == "support"
   end
 
   def can_chat_with_support?
@@ -100,23 +100,23 @@ class User < ApplicationRecord
 
   # Add these methods to calculate total sales and average rating
   def total_sales
-    products.joins(:order_items).sum('order_items.quantity * order_items.unit_price')
+    products.joins(:order_items).sum("order_items.quantity * order_items.unit_price")
   end
-  
+
   def average_rating
-    products.joins(:reviews).average('reviews.rating') || 0
+    products.joins(:reviews).average("reviews.rating") || 0
   end
 
   def supplier?
-    role == 'supplier'
+    role == "supplier"
   end
 
   def buyer?
-    role == 'buyer'
+    role == "buyer"
   end
 
   def admin?
-    role == 'admin'
+    role == "admin"
   end
 
   def can_supply?
@@ -131,10 +131,10 @@ class User < ApplicationRecord
   return false unless product.present?
   return false unless product.is_a?(Product)
   return false if product.user == self # Can't review own product
-  
+
   orders.joins(:order_items)
         .where(order_items: { product_id: product.id })
-        .where(status: 'delivered')
+        .where(status: "delivered")
         .any?
   end
 
@@ -150,66 +150,66 @@ class User < ApplicationRecord
   def email_verified?
     email_verified_at.present?
   end
-  
+
   def verification_code_expired?
-    email_verification_sent_at.present? && 
+    email_verification_sent_at.present? &&
     email_verification_sent_at < VERIFICATION_CODE_EXPIRY.ago
   end
-  
+
   def can_resend_verification?
-    email_verification_sent_at.nil? || 
+    email_verification_sent_at.nil? ||
     email_verification_sent_at < 2.minutes.ago
   end
-  
+
   def needs_verification_reminder?
-    !email_verified? && 
-    (last_verification_reminder_at.nil? || 
+    !email_verified? &&
+    (last_verification_reminder_at.nil? ||
      last_verification_reminder_at < REMINDER_DELAY.ago)
   end
-  
+
   # Generate and send verification code
   def send_verification_code
     return false unless can_resend_verification?
-    
+
     # Generate 6-digit code
     self.email_verification_code = rand(100000..999999).to_s
     self.email_verification_sent_at = Time.current
     self.verification_attempts = 0
     save!
-    
+
     # Send verification email
     UserMailer.verification_email(self).deliver_now
-    
+
     true
   end
-  
+
   def send_welcome_email
     return unless Rails.env.production?
     UserMailer.welcome_email(self).deliver_now
   end
-  
+
   def send_verification_reminder
     return false unless needs_verification_reminder?
-    
+
     self.last_verification_reminder_at = Time.current
     save!
-    
+
     UserMailer.verification_reminder(self).deliver_now
     true
   end
-  
+
   # Verify email with code
   def verify_email(code)
     # Check if verification attempts exceeded
     if verification_attempts.to_i >= MAX_VERIFICATION_ATTEMPTS
       return false, "Too many verification attempts. Please request a new code."
     end
-    
+
     # Check if code is expired
     if verification_code_expired?
       return false, "Verification code has expired. Please request a new one."
     end
-    
+
     # Check if code matches
     if email_verification_code == code.to_s
       update(
@@ -217,22 +217,22 @@ class User < ApplicationRecord
         email_verification_code: nil,
         verification_attempts: 0
       )
-      
+
       # If there was an unverified email change, update it
       if unverified_email.present?
         update(email: unverified_email, unverified_email: nil)
       end
-      
-      [true, "Email verified successfully!"]
+
+      [ true, "Email verified successfully!" ]
     else
       # Increment verification attempts
       increment!(:verification_attempts)
-      
+
       attempts_left = MAX_VERIFICATION_ATTEMPTS - verification_attempts
-      [false, "Invalid verification code. #{attempts_left} attempts remaining."]
+      [ false, "Invalid verification code. #{attempts_left} attempts remaining." ]
     end
   end
-  
+
   def verified_badge
     if email_verified?
       '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -250,12 +250,12 @@ class User < ApplicationRecord
       </span>'.html_safe
     end
   end
-  
+
   # Restrict features for unverified users
   def can_chat?
     email_verified?
   end
-  
+
   def can_order?
     email_verified?
   end
@@ -263,28 +263,28 @@ class User < ApplicationRecord
   private
 
   def set_defaults
-    self.role ||= 'buyer'
+    self.role ||= "buyer"
   end
 
   def generate_serial_number
-    self.serial_number = SerialNumberGenerator.generate_for('user')
+    self.serial_number = SerialNumberGenerator.generate_for("user")
   end
 
-   # Add callbacks to send emails after user creation
+  # Add callbacks to send emails after user creation
   # after_create :send_initial_emails
   after_commit :send_initial_emails, on: :create
   after_update :send_verification_for_email_change, if: :saved_change_to_email?
-  
+
   def send_initial_emails
     # Send welcome email
     send_welcome_email
-    
+
     # Send verification code (only for non-admin users)
     if !admin? && !support?
       send_verification_code
     end
   end
-  
+
   def send_verification_for_email_change
     # When email changes, store unverified email and send verification
     update_columns(
@@ -298,10 +298,10 @@ class User < ApplicationRecord
 
   send_verification_code
   end
-  
+
   # Set default for verification_attempts
   after_initialize :set_verification_defaults
-  
+
   def set_verification_defaults
     self.verification_attempts ||= 0
   end

@@ -60,7 +60,7 @@ products = [
   {
     name: 'Heirloom Tomatoes',
     description: 'Vine-ripened heirloom tomatoes with rich flavor and vibrant colors. Perfect for salads, sandwiches, and sauces.',
-    category: 'vegetables', 
+    category: 'vegetables',
     price: 4.50,
     stock_quantity: 25,
     unit: 'lb',
@@ -76,7 +76,7 @@ products = [
     category: 'herbs',
     price: 2.99,
     stock_quantity: 15,
-    unit: 'bunch', 
+    unit: 'bunch',
     location: 'Springfield, IL',
     is_organic: false,
     featured: false,
@@ -182,7 +182,7 @@ pages = [
     </div>"
   },
   {
-    slug: 'our-mission', 
+    slug: 'our-mission',
     title: 'Our Mission',
     content: "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
       <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>Our Mission</h1>
@@ -190,7 +190,7 @@ pages = [
         <div class='prose prose-lg max-w-none'>
           <h2 class='text-2xl font-semibold text-green-600 mb-4'>Connecting Farmers & Consumers</h2>
           <p class='text-gray-700 mb-6'>At EmbarkmentLTD, we believe in creating a sustainable future by bridging the gap between local farmers and conscious consumers.</p>
-          
+
           <div class='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
             <div class='bg-green-50 rounded-lg p-6'>
               <h3 class='text-xl font-semibold text-gray-800 mb-3'>🌱 For Farmers</h3>
@@ -215,14 +215,14 @@ pages = [
   },
   {
     slug: 'about-us',
-    title: 'About Us', 
+    title: 'About Us',
     content: "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
       <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>About Us</h1>
       <div class='bg-white rounded-xl shadow-sm p-8'>
         <div class='prose prose-lg max-w-none'>
           <h2 class='text-2xl font-semibold text-green-600 mb-4'>Our Story</h2>
           <p class='text-gray-700 mb-6'>EmbarkmentLTD was founded with a simple mission: to create a direct connection between local farmers and their communities.</p>
-          
+
           <p class='text-gray-700 mb-6'>We believe that everyone deserves access to fresh, high-quality produce while supporting the hardworking farmers who grow our food.</p>
 
           <div class='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>

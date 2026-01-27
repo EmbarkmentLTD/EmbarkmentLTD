@@ -31,7 +31,7 @@ module ApplicationHelper
   def initials(name)
     name.split.map { |word| word[0] }.join.upcase
   end
- 
+
   def quotation_items_count
     session[:quotation]&.values&.sum || 0
   end
@@ -47,19 +47,18 @@ module ApplicationHelper
   def order_status_color(status)
   status = status.to_s
   case status
-  when 'pending'
-    'bg-yellow-100 text-yellow-800'
-  when 'confirmed'
-    'bg-blue-100 text-blue-800'
-  when 'shipped'
-    'bg-purple-100 text-purple-800'
-  when 'delivered'
-    'bg-green-100 text-green-800'
-  when 'cancelled'
-    'bg-red-100 text-red-800'
+  when "pending"
+    "bg-yellow-100 text-yellow-800"
+  when "confirmed"
+    "bg-blue-100 text-blue-800"
+  when "shipped"
+    "bg-purple-100 text-purple-800"
+  when "delivered"
+    "bg-green-100 text-green-800"
+  when "cancelled"
+    "bg-red-100 text-red-800"
   else
-    'bg-gray-100 text-gray-800'
+    "bg-gray-100 text-gray-800"
   end
 end
-
 end

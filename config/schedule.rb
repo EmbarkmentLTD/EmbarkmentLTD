@@ -18,7 +18,7 @@
 # end
 
 # Run daily at 9 AM
-every 1.day, at: '12:00 am' do
+every 1.day, at: "12:00 am" do
   runner "VerificationReminderJob.perform_later"
 end
 

@@ -2,43 +2,37 @@ class HomeController < ApplicationController
   def index
     @featured_products = Product.featured.in_stock.limit(8)
     @categories = Product::CATEGORIES
-    
+
 
     # Get product counts per category
     @category_counts = Product.group(:category).count
-    
-    # Get multiple product images for each category (for collage)
-    # Load products with their images preloaded for performance
-    products = Product.includes(images_attachments: :blob)
-                      .where(category: @categories.keys)
-                      .where(id: Product.group(:category).select('MAX(id)'))  # Get one per category
-                      .order(created_at: :desc)
-    
+
     # For each category, get up to 4 products for the collage
     @category_products = {}
-    
+
     @categories.each_key do |category_key|
       # Get up to 4 products from this category that have images
-      category_products = Product.includes(images_attachments: :blob)
-                                 .where(category: category_key)
-                                 .where.associated(:images_attachments)  # Only products with images
-                                 .order(created_at: :desc)
-                                 .limit(4)
-      
+      category_products = Product.with_attached_images
+                 .joins(:images_attachments)
+                 .where(category: category_key)
+                 .distinct
+                 .order(created_at: :desc)
+                 .limit(4)
+
       @category_products[category_key] = category_products if category_products.any?
     end
   end
 
   def mission
-    @page = Page.find_by(slug: 'our-mission') || create_default_page('our-mission', 'Our Mission')
+    @page = Page.find_by(slug: "our-mission") || create_default_page("our-mission", "Our Mission")
   end
 
   def about_us
-    @page = Page.find_by(slug: 'about-us') || create_default_page('about-us', 'About Us')
+    @page = Page.find_by(slug: "about-us") || create_default_page("about-us", "About Us")
   end
 
   def contact_us
-    @page = Page.find_by(slug: 'contact-us') || create_default_page('contact-us', 'Contact Us')
+    @page = Page.find_by(slug: "contact-us") || create_default_page("contact-us", "Contact Us")
   end
 
   private
@@ -53,7 +47,7 @@ class HomeController < ApplicationController
 
   def default_content(slug)
     case slug
-    when 'contact-us'
+    when "contact-us"
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>Contact Us</h1>
         <div class='grid grid-cols-1 md:grid-cols-2 gap-8'>
@@ -81,14 +75,14 @@ class HomeController < ApplicationController
           </div>
         </div>
       </div>"
-    when 'our-mission'
+    when "our-mission"
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>Our Mission</h1>
         <div class='bg-white rounded-xl shadow-sm p-8'>
           <div class='prose prose-lg max-w-none'>
             <h2 class='text-2xl font-semibold text-green-600 mb-4'>Connecting Farmers & Consumers</h2>
             <p class='text-gray-700 mb-6'>At EmbarkmentLTD, we believe in creating a sustainable future by bridging the gap between local farmers and conscious consumers.</p>
-            
+
             <div class='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
               <div class='bg-green-50 rounded-lg p-6'>
                 <h3 class='text-xl font-semibold text-gray-800 mb-3'>🌱 For Farmers</h3>
@@ -110,14 +104,14 @@ class HomeController < ApplicationController
           </div>
         </div>
       </div>"
-    when 'about-us'
+    when "about-us"
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 class='text-4xl font-bold text-gray-900 mb-8 text-center'>About Us</h1>
         <div class='bg-white rounded-xl shadow-sm p-8'>
           <div class='prose prose-lg max-w-none'>
             <h2 class='text-2xl font-semibold text-green-600 mb-4'>Our Story</h2>
             <p class='text-gray-700 mb-6'>EmbarkmentLTD was founded with a simple mission: to create a direct connection between local farmers and their communities.</p>
-            
+
             <p class='text-gray-700 mb-6'>We believe that everyone deserves access to fresh, high-quality produce while supporting the hardworking farmers who grow our food.</p>
 
             <div class='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
@@ -150,5 +144,4 @@ class HomeController < ApplicationController
       "<div class='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'><p>Page content coming soon...</p></div>"
     end
   end
-  
 end

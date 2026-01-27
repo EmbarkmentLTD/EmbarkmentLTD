@@ -1,27 +1,27 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: [:show, :edit, :update, :destroy, :toggle_availability]
-  before_action :authenticate_user!, except: [:index, :show, :search]
-  before_action :authorize_supplier, only: [:new, :create]  # Only for creating new products
-  before_action :authorize_product_management, only: [:edit, :update, :destroy, :toggle_availability]
+  before_action :set_product, only: [ :show, :edit, :update, :destroy, :toggle_availability ]
+  before_action :authenticate_user!, except: [ :index, :show, :search ]
+  before_action :authorize_supplier, only: [ :new, :create ]  # Only for creating new products
+  before_action :authorize_product_management, only: [ :edit, :update, :destroy, :toggle_availability ]
 
   def index
     @products = Product.all.includes(:user, :reviews)
-    
+
     # Apply filters
     @products = @products.by_category(params[:categories]) if params[:categories].present?
-    @products = @products.organic if params[:organic] == 'true'
-    @products = @products.in_stock if params[:in_stock] == 'true'
-    @products = @products.where('price >= ?', params[:min_price]) if params[:min_price].present?
-    @products = @products.where('price <= ?', params[:max_price]) if params[:max_price].present?
-    @products = @products.where('location ILIKE ?', "%#{params[:location]}%") if params[:location].present?
-    @products = @products.where('average_rating >= ?', params[:min_rating]) if params[:min_rating].present?
+    @products = @products.organic if params[:organic] == "true"
+    @products = @products.in_stock if params[:in_stock] == "true"
+    @products = @products.where("price >= ?", params[:min_price]) if params[:min_price].present?
+    @products = @products.where("price <= ?", params[:max_price]) if params[:max_price].present?
+    @products = @products.where("location ILIKE ?", "%#{params[:location]}%") if params[:location].present?
+    @products = @products.where("average_rating >= ?", params[:min_rating]) if params[:min_rating].present?
     @products = @products.search(params[:search]) if params[:search].present?
 
     # Apply sorting
     @products = apply_sorting(@products)
 
     @products = @products.page(params[:page]).per(12)
-    
+
     setup_categories
     setup_price_range
   end
@@ -37,7 +37,7 @@ class ProductsController < ApplicationController
     @review = Review.new
 
     # Set instance variable for review permission check
-    @can_review = user_signed_in? && current_user != @product.user && current_user.can_review?(@product)
+    @can_review = user_signed_in? && current_user.buyer? && current_user != @product.user && !@product.reviews.exists?(user_id: current_user.id)
   end
 
   def new
@@ -46,12 +46,12 @@ class ProductsController < ApplicationController
 
   def create
     @product = current_user.products.new(product_params)
-    
+
     if @product.save
-  
-      redirect_to @product, notice: 'Product was successfully created.'
+
+      redirect_to @product, notice: "Product was successfully created."
     else
-      flash.now[:alert] = 'Failed to create product. Please check the form for errors.'
+      flash.now[:alert] = "Failed to create product. Please check the form for errors."
       render :new, status: :unprocessable_entity
     end
   end
@@ -62,17 +62,17 @@ class ProductsController < ApplicationController
   def update
     if @product.update(product_params)
 
-      
-      redirect_to @product, notice: 'Product was successfully updated.'
+
+      redirect_to @product, notice: "Product was successfully updated."
     else
-      flash.now[:alert] = 'Failed to update product. Please check the form for errors.'
+      flash.now[:alert] = "Failed to update product. Please check the form for errors."
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
     @product.destroy
-    redirect_to products_url, notice: 'Product was successfully deleted.'
+    redirect_to products_url, notice: "Product was successfully deleted."
   end
 
   def toggle_availability
@@ -106,11 +106,11 @@ class ProductsController < ApplicationController
   def quotation
     @product = Product.find(params[:id])
     @quantity = params[:quantity] || 1
-    
+
     # Add to quotation session
     session[:quotation] ||= {}
     session[:quotation][@product.id.to_s] = @quantity.to_i
-    
+
     render :quotation
   end
 
@@ -122,34 +122,34 @@ class ProductsController < ApplicationController
 
   def authorize_supplier
     unless current_user.can_supply?
-      redirect_to products_path, alert: 'Only suppliers can list products. Please contact support to upgrade your account.'
+      redirect_to products_path, alert: "Only suppliers can list products. Please contact support to upgrade your account."
     end
   end
 
   def authorize_product_management
     unless current_user.can_manage_product?(@product)
-      redirect_to products_path, alert: 'Not authorized to manage this product.'
+      redirect_to products_path, alert: "Not authorized to manage this product."
     end
   end
 
   def product_params
-    params.require(:product).permit(:name, :description, :category, :price, 
-                                   :stock_quantity, :unit, :location, 
-                                   :is_organic, :featured, :harvest_date, 
+    params.require(:product).permit(:name, :description, :category, :price,
+                                   :stock_quantity, :unit, :location,
+                                   :is_organic, :featured, :harvest_date,
                                    :expiry_date, images: [])  # Added images
   end
 
   def apply_sorting(products)
     case params[:sort_by]
-    when 'price_low'
+    when "price_low"
       products.order(price: :asc)
-    when 'price_high'
+    when "price_high"
       products.order(price: :desc)
-    when 'rating'
+    when "rating"
       products.order(average_rating: :desc)
-    when 'newest'
+    when "newest"
       products.order(created_at: :desc)
-    when 'name'
+    when "name"
       products.order(name: :asc)
     else
       products.order(created_at: :desc)

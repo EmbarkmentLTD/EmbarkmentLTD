@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_user, only: [:show, :edit, :update, :destroy]
-  before_action :authorize_user, only: [:edit, :update]
+  before_action :set_user, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_user, only: [ :edit, :update ]
 
   def show
     @products = @user.products.includes(:reviews).order(created_at: :desc).page(params[:page]).per(12)
@@ -13,7 +13,7 @@ class UsersController < ApplicationController
 
   def update
     if @user.update(user_params)
-      redirect_to profile_path, notice: 'Profile updated successfully.'
+      redirect_to profile_path, notice: "Profile updated successfully."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -27,7 +27,7 @@ class UsersController < ApplicationController
 
   def destroy
       @user.destroy
-      redirect_to admin_users_path, notice: 'User deleted successfully.'
+      redirect_to admin_users_path, notice: "User deleted successfully."
   end
 
   private
@@ -37,7 +37,7 @@ class UsersController < ApplicationController
   end
 
   def authorize_user
-    redirect_to root_path, alert: 'Not authorized.' unless @user == current_user || current_user.admin?
+    redirect_to root_path, alert: "Not authorized." unless @user == current_user || current_user.admin?
   end
 
   def user_params
