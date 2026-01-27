@@ -30,9 +30,9 @@ module VerificationRequired
       # Redirect to verification page with warning
       if request.format.html?
         redirect_to verification_path,
-                    alert: "Please verify your email to access this feature. Check your screen for a 6-digit code."
+                    alert: "Please verify your account to access this feature. Check your screen for a 6-digit code."
       else
-        render json: { error: "Email verification required" }, status: :forbidden
+        render json: { error: "Account verification required" }, status: :forbidden
       end
     end
   end
