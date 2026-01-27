@@ -55,6 +55,8 @@
                 opacity: 0;
                 transform: translateY(-10px);
                 transition: opacity 0.3s ease, transform 0.3s ease;
+                max-height: 50vh;
+                overflow-y: auto;
             }
             
             /* Show mobile menu when active */
@@ -104,7 +106,7 @@
             # }
             
             .mobile-menu-overlay.active {
-                display: block;
+                display: none;
             }
             
             /* Ensure proper mobile layout */
