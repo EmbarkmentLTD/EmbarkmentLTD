@@ -36,7 +36,6 @@ gem "rack-cors"
 gem "tailwindcss-rails", "~> 2.3"
 gem "whenever", require: false
 gem "mail"
-gem "dotenv-rails"
 # Add this instead
 gem "valid_email2"
 gem "country_select"
@@ -61,6 +60,8 @@ group :development, :test do
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
+
+  gem "dotenv-rails", groups: [ :development, :production ]
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false

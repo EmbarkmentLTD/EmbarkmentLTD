@@ -273,6 +273,11 @@ class User < ApplicationRecord
     domain = email.to_s.split("@").last
     return if domain.blank?
 
+    unless domain.match?(/\A[a-z0-9.-]+\.[a-z]{2,}\z/i)
+      errors.add(:email, "domain is invalid. Please use a real email address.")
+      return
+    end
+
     mx_records = []
 
     begin
