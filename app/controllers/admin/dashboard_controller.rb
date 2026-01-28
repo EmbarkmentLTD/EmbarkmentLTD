@@ -4,8 +4,14 @@ class Admin::DashboardController < ApplicationController
 
   def index
     @users_count = User.count
+    @buyers_count = User.where(role: "buyer").count
+    @suppliers_count = User.where(role: "supplier").count
     @products_count = Product.count
+    @in_stock_count = Product.where("stock_quantity > 0").count
+    @out_of_stock_count = Product.where("stock_quantity <= 0").count
     @orders_count = Order.count
+    @reviews_count = Review.count
+    @support_messages_count = SupportMessage.count
     @recent_orders = Order.includes(:user).order(created_at: :desc).limit(5)
     @recent_products = Product.includes(:user).order(created_at: :desc).limit(5)
 
@@ -28,6 +34,21 @@ class Admin::DashboardController < ApplicationController
                             .where("created_at > ?", 7.days.ago)
                             .order(created_at: :desc)
                             .limit(10)
+
+    date_range = (29.days.ago.to_date..Date.current).to_a
+
+    signups_by_day = User.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
+                          .group("DATE(created_at)")
+                          .count
+    orders_by_day = Order.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
+                         .group("DATE(created_at)")
+                         .count
+
+    @signup_labels = date_range.map { |d| d.strftime("%b %d") }
+    @signup_series = date_range.map { |d| signups_by_day[d] || 0 }
+    @orders_series = date_range.map { |d| orders_by_day[d] || 0 }
+
+    @category_breakdown = Product.group(:category).count
   end
 
   # Keep the separate action if you want a dedicated page

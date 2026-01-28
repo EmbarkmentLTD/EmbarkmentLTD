@@ -2,3 +2,6 @@
 import "@hotwired/turbo-rails"
 import "devise/turbo"
 import "controllers"
+import Chart from "chart.js"
+
+window.Chart = Chart
