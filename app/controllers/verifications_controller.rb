@@ -10,6 +10,14 @@ class VerificationsController < ApplicationController
     success, message = current_user.verify_email(params[:verification_code])
 
     if success
+      if current_user.email_verified_at.nil?
+        current_user.update_columns(
+          email_verified_at: Time.current,
+          email_verification_code: nil,
+          verification_attempts: 0,
+          updated_at: Time.current
+        )
+      end
       current_user.reload
       sign_in(current_user, bypass: true)
       redirect_to root_path, notice: message
