@@ -30,6 +30,7 @@ class Admin::UsersController < ApplicationController
 
         redirect_to admin_user_path(@user), notice: "User updated successfully."
       else
+        flash.now[:alert] = @user.errors.full_messages.to_sentence
         render :edit, status: :unprocessable_entity
       end
   end
@@ -48,6 +49,7 @@ class Admin::UsersController < ApplicationController
       if @user.save
         redirect_to admin_user_path(@user), notice: "User created successfully."
       else
+        flash.now[:alert] = @user.errors.full_messages.to_sentence
         render :new, status: :unprocessable_entity
       end
   end
