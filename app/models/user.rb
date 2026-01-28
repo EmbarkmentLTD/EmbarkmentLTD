@@ -212,10 +212,11 @@ class User < ApplicationRecord
 
     # Check if code matches
     if email_verification_code == code.to_s
-      update(
+      update_columns(
         email_verified_at: Time.current,
         email_verification_code: nil,
-        verification_attempts: 0
+        verification_attempts: 0,
+        updated_at: Time.current
       )
 
       # If there was an unverified email change, update it
