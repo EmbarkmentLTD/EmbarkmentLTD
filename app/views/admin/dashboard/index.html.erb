@@ -3,85 +3,105 @@
     <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p class="text-gray-600 mt-2">Platform Intelligence & Analytics</p>
+            <p class="text-gray-600 mt-2">Operations overview • No payments collected on-platform</p>
         </div>
         <div class="flex flex-wrap gap-3">
-            <%= link_to 'Manage Users', admin_users_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
-            <%= link_to 'Manage Products', admin_products_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
-            <%= link_to 'Manage Orders', admin_orders_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
-            <%= link_to 'Manage Reviews', '#', class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
-            <%= link_to 'Message Dashboard', support_dashboard_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
+            <%= link_to 'Users', admin_users_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
+            <%= link_to 'Products', admin_products_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
+            <%= link_to 'Orders', admin_orders_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
+            <%= link_to 'Reviews', admin_reviews_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
+            <%= link_to 'Support', support_dashboard_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
         </div>
     </div>
 
-    <!-- Quick Stats -->
+    <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-6 rounded-lg shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900">Total Users</h3>
-            <p class="text-3xl font-bold text-blue-600"><%= @users_count %></p>
+            <h3 class="text-sm font-semibold text-gray-500">Total Users</h3>
+            <p class="text-3xl font-bold text-gray-900"><%= @users_count %></p>
+            <p class="text-xs text-gray-500 mt-1"><%= @buyers_count %> buyers • <%= @suppliers_count %> suppliers</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900">Products</h3>
-            <p class="text-3xl font-bold text-green-600"><%= @products_count %></p>
+            <h3 class="text-sm font-semibold text-gray-500">Products</h3>
+            <p class="text-3xl font-bold text-gray-900"><%= @products_count %></p>
+            <p class="text-xs text-gray-500 mt-1"><%= @in_stock_count %> in stock • <%= @out_of_stock_count %> out</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900">Orders</h3>
-            <p class="text-3xl font-bold text-purple-600"><%= @orders_count %></p>
+            <h3 class="text-sm font-semibold text-gray-500">Orders</h3>
+            <p class="text-3xl font-bold text-gray-900"><%= @orders_count %></p>
+            <p class="text-xs text-gray-500 mt-1">Orders recorded (no payments)</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900">Active This Week</h3>
-            <p class="text-3xl font-bold text-orange-600"><%= User.where('updated_at >= ?', 1.week.ago).count %></p>
+            <h3 class="text-sm font-semibold text-gray-500">Verification Rate</h3>
+            <p class="text-3xl font-bold text-gray-900"><%= @verification_rate %>%</p>
+            <p class="text-xs text-gray-500 mt-1"><%= @unverified_users %> unverified</p>
         </div>
     </div>
 
-    <!-- Platform Intelligence Tab -->
-    <div class="bg-white rounded-lg shadow-sm mb-8">
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex flex-wrap gap-4 px-6">
-                <a href="#" class="border-green-500 text-green-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                    Platform Intelligence
-                </a>
-            </nav>
+    <!-- Charts -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-sm xl:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">User Signups (30 days)</h2>
+                <span class="text-xs text-gray-500">Daily totals</span>
+            </div>
+            <canvas id="signupsChart" height="120"></canvas>
         </div>
 
-        <div class="p-6">
-            <!-- Feature 1: Business Intelligence & Analytics -->
-            <%= render 'admin/dashboard/business_intelligence' %>
-
-            <!-- Feature 2: Supplier Performance Monitoring -->
-            <%= render 'admin/dashboard/supplier_performance' %>
-
-            <!-- Feature 3: Market Insights & Trends -->
-            <%= render 'admin/dashboard/market_insights' %>
-
-            <!-- Feature 4: Quality Control & Verification -->
-            <%= render 'admin/dashboard/quality_control' %>
-
-            <!-- Feature 5: Platform Optimization Tools -->
-            <%= render 'admin/dashboard/platform_optimization' %>
-
-            <!-- Feature 6: Seasonal Planning & Forecasting -->
-            <%= render 'admin/dashboard/seasonal_planning' %>
-
-            <!-- Feature 7: Sustainability Metrics -->
-            <%= render 'admin/dashboard/sustainability_metrics' %>
-
-            <!-- Feature 8: Quick Actions Panel -->
-            <%= render 'admin/dashboard/quick_actions' %>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Product Categories</h2>
+                <span class="text-xs text-gray-500">Distribution</span>
+            </div>
+            <canvas id="categoriesChart" height="180"></canvas>
         </div>
     </div>
 
-    <!-- Existing Recent Activity Section -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-sm xl:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Orders (30 days)</h2>
+                <span class="text-xs text-gray-500">Daily totals</span>
+            </div>
+            <canvas id="ordersChart" height="120"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Support & Reviews</h2>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Support messages</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @support_messages_count %></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Reviews</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @reviews_count %></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Flagged reviews</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @flagged_reviews %></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Pending product verifications</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @pending_verifications %></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div class="bg-white p-6 rounded-lg shadow border">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Orders</h2>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Orders</h2>
             <% if @recent_orders.any? %>
             <div class="space-y-4">
                 <% @recent_orders.each do |order| %>
                 <div class="border-b pb-4 last:border-b-0">
                     <p class="font-medium">Order #<%= order.id %></p>
                     <p class="text-gray-600">By <%= order.user.name %></p>
-                    <p class="text-sm text-gray-500"><%= order.created_at.strftime("%b %d, %Y") %></p>
+                    <p class="text-xs text-gray-500"><%= order.created_at.strftime("%b %d, %Y") %></p>
                 </div>
                 <% end %>
             </div>
@@ -90,15 +110,15 @@
             <% end %>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow border">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Products</h2>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Products</h2>
             <% if @recent_products.any? %>
             <div class="space-y-4">
                 <% @recent_products.each do |product| %>
                 <div class="border-b pb-4 last:border-b-0">
                     <p class="font-medium"><%= product.name %></p>
                     <p class="text-gray-600">By <%= product.user.name %></p>
-                    <p class="text-sm text-gray-500"><%= product.created_at.strftime("%b %d, %Y") %></p>
+                    <p class="text-xs text-gray-500"><%= product.created_at.strftime("%b %d, %Y") %></p>
                 </div>
                 <% end %>
             </div>
@@ -108,3 +128,88 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("turbo:load", () => {
+        if (!window.Chart) return;
+
+        const signupLabels = <%= raw @signup_labels.to_json %>;
+        const signupSeries = <%= raw @signup_series.to_json %>;
+        const ordersSeries = <%= raw @orders_series.to_json %>;
+        const categoryData = <%= raw @category_breakdown.to_json %>;
+
+        const signupsCtx = document.getElementById("signupsChart");
+        if (signupsCtx) {
+            new Chart(signupsCtx, {
+                type: "line",
+                data: {
+                    labels: signupLabels,
+                    datasets: [{
+                        label: "Signups",
+                        data: signupSeries,
+                        borderColor: "#16a34a",
+                        backgroundColor: "rgba(22, 163, 74, 0.12)",
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { ticks: { maxTicksLimit: 8 } } }
+                }
+            });
+        }
+
+        const ordersCtx = document.getElementById("ordersChart");
+        if (ordersCtx) {
+            new Chart(ordersCtx, {
+                type: "bar",
+                data: {
+                    labels: signupLabels,
+                    datasets: [{
+                        label: "Orders",
+                        data: ordersSeries,
+                        backgroundColor: "rgba(37, 99, 235, 0.65)",
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { ticks: { maxTicksLimit: 8 } } }
+                }
+            });
+        }
+
+        const categoriesCtx = document.getElementById("categoriesChart");
+        if (categoriesCtx) {
+            new Chart(categoriesCtx, {
+                type: "doughnut",
+                data: {
+                    labels: Object.keys(categoryData),
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: [
+                            "#16a34a",
+                            "#22c55e",
+                            "#86efac",
+                            "#f59e0b",
+                            "#f97316",
+                            "#3b82f6",
+                            "#6366f1",
+                            "#a855f7"
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: "bottom" } }
+                }
+            });
+        }
+    });
+</script>
