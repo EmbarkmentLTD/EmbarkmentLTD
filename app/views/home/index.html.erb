@@ -16,12 +16,12 @@
 
             <!-- Search Bar -->
             <%= form_with url: products_path, method: :get, local: true, class: "max-w-2xl mx-auto" do |form| %>
-            <div class="flex flex-col sm:flex-row shadow-lg rounded-lg overflow-hidden">
+            <div class="flex shadow-lg rounded-lg overflow-hidden">
                 <%= form.text_field :search, 
                 placeholder: "Search for products, farmers, or locations...",
-                class: "flex-1 px-6 py-4 text-lg border-0 focus:ring-0 focus:outline-none" %>
+                class: "flex-1 px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-0 focus:ring-0 focus:outline-none" %>
                 <%= form.submit "Search", 
-                class: "bg-green-600 hover:bg-green-700 text-white px-8 py-4 font-medium transition-colors w-full sm:w-auto" %>
+                class: "bg-green-600 hover:bg-green-700 text-white px-5 sm:px-8 font-medium transition-colors" %>
             </div>
             <% end %>
         </div>
