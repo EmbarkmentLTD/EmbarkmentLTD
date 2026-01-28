@@ -31,18 +31,18 @@
     <div>
         <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
         <p class="text-sm text-gray-500">(leave blank if you don't want to change it)</p>
-        <%= f.password_field :password, autocomplete: "new-password", class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        <%= f.password_field :password, autocomplete: "new-password", placeholder: "Example: P@ssw0rd123!", class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
     </div>
 
     <div>
         <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
-        <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "Example: P@ssw0rd123!", class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
     </div>
 
     <div>
         <%= f.label :current_password, class: "block text-sm font-medium text-gray-700" %>
         <p class="text-sm text-gray-500">(we need your current password to confirm your changes)</p>
-        <%= f.password_field :current_password, autocomplete: "current-password", class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+        <%= f.password_field :current_password, autocomplete: "current-password", placeholder: "Example: P@ssw0rd123!", class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
     </div>
 
     <div class="flex space-x-4">

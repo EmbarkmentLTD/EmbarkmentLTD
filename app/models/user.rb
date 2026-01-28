@@ -24,7 +24,7 @@ class User < ApplicationRecord
   validates :email,
     'valid_email_2/email': {
       disposable: { message: "Temporary/disposable emails are not allowed" },
-      mx: false,         # Don't check MX records (faster)
+      mx: true,         # Require valid MX records
       disallow_subaddressing: false  # Allow plus addressing (user+tag@gmail.com)
     }
 
