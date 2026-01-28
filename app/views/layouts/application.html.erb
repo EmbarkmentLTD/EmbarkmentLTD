@@ -258,7 +258,7 @@
         <% end %>
 
         <!-- ADD THE VERIFICATION FLASH MESSAGE HERE - RIGHT AFTER THE ALERT MESSAGES -->
-        <% if user_signed_in? && !current_user.email_verified? && !request.path.include?('/verify') %>
+        <% if user_signed_in? && !current_user.admin? && !current_user.support? && !current_user.email_verified? && !request.path.include?('/verify') %>
         <div class="fixed top-32 md:top-20 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-lg flash-message">
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-lg mx-4">
                 <div class="flex">
