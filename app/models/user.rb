@@ -1,3 +1,6 @@
+require "resolv"
+require "timeout"
+
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, :trackable
@@ -27,6 +30,7 @@ class User < ApplicationRecord
       mx: true,         # Require valid MX records
       disallow_subaddressing: false  # Allow plus addressing (user+tag@gmail.com)
     }
+  validate :email_domain_has_mx, if: :will_save_change_to_email?
 
   validates :name, presence: true
   validates :location, presence: true
@@ -262,6 +266,29 @@ class User < ApplicationRecord
   end
 
   private
+
+  def email_domain_has_mx
+    return if email.blank?
+
+    domain = email.to_s.split("@").last
+    return if domain.blank?
+
+    mx_records = []
+
+    begin
+      Timeout.timeout(3) do
+        Resolv::DNS.open do |dns|
+          mx_records = dns.getresources(domain, Resolv::DNS::Resource::IN::MX)
+        end
+      end
+    rescue StandardError, Timeout::Error
+      mx_records = []
+    end
+
+    if mx_records.blank?
+      errors.add(:email, "domain is not reachable. Please use a real email address.")
+    end
+  end
 
   def set_defaults
     self.role ||= "buyer"
