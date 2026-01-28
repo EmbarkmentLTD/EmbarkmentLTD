@@ -10,6 +10,8 @@ class VerificationsController < ApplicationController
     success, message = current_user.verify_email(params[:verification_code])
 
     if success
+      current_user.reload
+      sign_in(current_user, bypass: true)
       redirect_to root_path, notice: message
     else
       flash.now[:alert] = message
