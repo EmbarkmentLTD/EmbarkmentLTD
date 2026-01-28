@@ -5,7 +5,8 @@ Rails.application.routes.draw do
     registration: "register"
   }, controllers: {
     sessions: "devise/sessions",
-    registrations: "devise/registrations"
+    registrations: "users/registrations",
+    passwords: "users/passwords"
   }
 
   root "home#index"

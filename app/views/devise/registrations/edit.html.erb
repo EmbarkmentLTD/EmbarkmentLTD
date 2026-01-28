@@ -2,7 +2,7 @@
     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Edit Profile</h2>
 
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-4" }) do |f| %>
-    <%= render "devise/shared/error_messages", resource: resource %>
+    
 
     <div>
         <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>
