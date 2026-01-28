@@ -53,10 +53,9 @@
 
         <div>
             <%= form.label :location, class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_field :location, 
-              value: @product.location.presence || current_user.location,
-              placeholder: "City, State",
-              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" %>
+                        <%= form.country_select :location,
+                            { include_blank: "Select country", selected: @product.location.presence || current_user.location },
+                            { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" } %>
         </div>
 
         <div class="sm:col-span-2">

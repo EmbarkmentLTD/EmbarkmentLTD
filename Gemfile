@@ -38,6 +38,7 @@ gem "whenever", require: false
 gem "mail"
 # Add this instead
 gem "valid_email2"
+gem "country_select"
 
 
 # Reduces boot times through caching; required in config/boot.rb
