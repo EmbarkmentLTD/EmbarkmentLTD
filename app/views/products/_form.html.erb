@@ -153,21 +153,23 @@
     <div class="mb-4">
         <h4 class="text-sm font-medium text-gray-700 mb-2">Current Images</h4>
         <div class="grid grid-cols-4 gap-2">
-            <% @product.images.each do |image| %>
-            <div class="relative group">
-                <%= image_tag image, class: "aspect-square object-cover rounded-md border border-gray-200" %>
-                <div class="absolute top-1 right-1">
-                    <%= link_to "X", purge_attachment_path(image), 
-                        method: :delete,
-                        data: { 
-                          turbo_method: :delete,
-                          turbo_confirm: "Are you sure you want to remove this image?",
-                          turbo: "false"
-                        },
-                        class: "bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold border border-white cursor-pointer" %>
-                </div>
-            </div>
-            <% end %>
+                        <% @product.images.each do |image| %>
+                        <div class="relative group">
+                                <%= image_tag image, class: "aspect-square object-cover rounded-md border border-gray-200" %>
+                                <% if image.persisted? && image.blob&.persisted? %>
+                                <div class="absolute top-1 right-1">
+                                        <%= link_to "X", purge_attachment_path(image), 
+                                                method: :delete,
+                                                data: { 
+                                                    turbo_method: :delete,
+                                                    turbo_confirm: "Are you sure you want to remove this image?",
+                                                    turbo: "false"
+                                                },
+                                                class: "bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold border border-white cursor-pointer" %>
+                                </div>
+                                <% end %>
+                        </div>
+                        <% end %>
         </div>
     </div>
     <% end %>
