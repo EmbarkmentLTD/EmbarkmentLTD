@@ -40,15 +40,38 @@ class Admin::DashboardController < ApplicationController
     signups_by_day = User.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
                           .group("DATE(created_at)")
                           .count
-    orders_by_day = Order.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
-                         .group("DATE(created_at)")
-                         .count
-
     @signup_labels = date_range.map { |d| d.strftime("%b %d") }
     @signup_series = date_range.map { |d| signups_by_day[d] || 0 }
-    @orders_series = date_range.map { |d| orders_by_day[d] || 0 }
 
-    @category_breakdown = Product.group(:category).count
+    category_counts = Product.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
+                             .group("DATE(created_at)", :category)
+                             .count
+
+    top_categories = Product.group(:category)
+                           .order(Arel.sql("COUNT(*) DESC"))
+                           .limit(5)
+                           .count
+                           .keys
+
+    @category_labels = @signup_labels
+    @category_series = top_categories.index_with do |category|
+      date_range.map { |d| category_counts[[ d, category ]] || 0 }
+    end
+
+    pageview_counts = PageView.where(viewed_on: date_range)
+                             .group(:path)
+                             .sum(:count)
+
+    top_paths = pageview_counts.sort_by { |_, count| -count }.first(5).map(&:first)
+
+    pageviews_by_day = PageView.where(viewed_on: date_range, path: top_paths)
+                              .group(:viewed_on, :path)
+                              .sum(:count)
+
+    @pageview_labels = @signup_labels
+    @pageview_series = top_paths.index_with do |path|
+      date_range.map { |d| pageviews_by_day[[ d, path ]] || 0 }
+    end
   end
 
   # Keep the separate action if you want a dedicated page

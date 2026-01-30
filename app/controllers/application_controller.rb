@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
    include VerificationRequired
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :track_page_view
 
   protected
 
@@ -28,4 +29,17 @@ class ApplicationController < ActionController::Base
     logged_in? && (current_user == product.user || current_user.admin?)
   end
   helper_method :can_edit_product?
+
+  private
+
+  def track_page_view
+    return unless request.get?
+    return unless request.format.html?
+
+    path = request.path
+    return if path.start_with?("/assets", "/files", "/rails/active_storage")
+    return if path == "/up"
+
+    PageView.record(path)
+  end
 end
