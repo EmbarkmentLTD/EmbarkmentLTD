@@ -279,19 +279,30 @@ class User < ApplicationRecord
     end
 
     mx_records = []
+    a_records = []
+    aaaa_records = []
 
     begin
       Timeout.timeout(3) do
         Resolv::DNS.open do |dns|
           mx_records = dns.getresources(domain, Resolv::DNS::Resource::IN::MX)
+          a_records = dns.getresources(domain, Resolv::DNS::Resource::IN::A)
+          aaaa_records = dns.getresources(domain, Resolv::DNS::Resource::IN::AAAA)
         end
       end
     rescue StandardError, Timeout::Error
       mx_records = []
+      a_records = []
+      aaaa_records = []
     end
 
     if mx_records.blank?
       errors.add(:email, "domain is not reachable. Please use a real email address.")
+      return
+    end
+
+    if a_records.blank? && aaaa_records.blank?
+      errors.add(:email, "domain has no DNS records. Please use a real email address.")
     end
   end
 
