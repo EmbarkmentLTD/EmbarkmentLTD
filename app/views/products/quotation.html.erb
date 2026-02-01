@@ -3,28 +3,59 @@
         <h1 class="text-2xl font-bold text-gray-800 mb-6">Choose Quotation Method</h1>
 
         <div class="mb-4">
-            <p class="text-gray-600">How would you like to receive your quotation??</p>
+            <p class="text-gray-600">How would you like to receive your quotation?</p>
         </div>
 
-                <% items_list = @quotation_items.map { |product, quantity| "- #{product.name} (Qty: #{quantity})" }.join("\n") %>
+                <% if @quotation_request.is_a?(QuotationRequest) %>
+                    <% items_list = @quotation_request.quotation_items.includes(:product).map { |item| "- #{item.product.name} (Qty: #{item.quantity})" }.join("\n") %>
+                    <% contact_name = @quotation_request.contact_name %>
+                    <% contact_email = @quotation_request.contact_email %>
+                    <% contact_phone = @quotation_request.contact_phone %>
+                    <% company = @quotation_request.company %>
+                    <% delivery_street = @quotation_request.delivery_street %>
+                    <% delivery_city = @quotation_request.delivery_city %>
+                    <% delivery_state = @quotation_request.delivery_state %>
+                    <% delivery_zip = @quotation_request.delivery_zip %>
+                    <% delivery_country = @quotation_request.delivery_country %>
+                    <% order_details = @quotation_request.order_details %>
+                    <% timeframe = @quotation_request.timeframe %>
+                    <% delivery_terms = @quotation_request.delivery_terms %>
+                    <% special_requirements = @quotation_request.special_requirements %>
+                <% else %>
+                    <% items_list = @quotation_items.map { |product, quantity| "- #{product.name} (Qty: #{quantity})" }.join("\n") %>
+                    <% contact_name = @quotation_request[:contact_name] %>
+                    <% contact_email = @quotation_request[:contact_email] %>
+                    <% contact_phone = @quotation_request[:contact_phone] %>
+                    <% company = @quotation_request[:company] %>
+                    <% delivery_street = @quotation_request[:delivery_street] %>
+                    <% delivery_city = @quotation_request[:delivery_city] %>
+                    <% delivery_state = @quotation_request[:delivery_state] %>
+                    <% delivery_zip = @quotation_request[:delivery_zip] %>
+                    <% delivery_country = @quotation_request[:delivery_country] %>
+                    <% order_details = @quotation_request[:order_details] %>
+                    <% timeframe = @quotation_request[:timeframe] %>
+                    <% delivery_terms = @quotation_request[:delivery_terms] %>
+                    <% special_requirements = @quotation_request[:special_requirements] %>
+                <% end %>
+
                 <% contact_lines = [] %>
-                <% contact_lines << "Full Name: #{@quotation_request[:contact_name]}" if @quotation_request[:contact_name].present? %>
-                <% contact_lines << "Email: #{@quotation_request[:contact_email]}" if @quotation_request[:contact_email].present? %>
-                <% contact_lines << "Phone Number: #{@quotation_request[:contact_phone]}" if @quotation_request[:contact_phone].present? %>
-                <% contact_lines << "Company: #{@quotation_request[:company]}" if @quotation_request[:company].present? %>
+                <% contact_lines << "Full Name: #{contact_name}" if contact_name.present? %>
+                <% contact_lines << "Email: #{contact_email}" if contact_email.present? %>
+                <% contact_lines << "Phone Number: #{contact_phone}" if contact_phone.present? %>
+                <% contact_lines << "Company: #{company}" if company.present? %>
 
                 <% delivery_lines = [] %>
-                <% delivery_lines << "Street Address: #{@quotation_request[:delivery_street]}" if @quotation_request[:delivery_street].present? %>
-                <% delivery_lines << "City: #{@quotation_request[:delivery_city]}" if @quotation_request[:delivery_city].present? %>
-                <% delivery_lines << "State/Province: #{@quotation_request[:delivery_state]}" if @quotation_request[:delivery_state].present? %>
-                <% delivery_lines << "ZIP/Postal Code: #{@quotation_request[:delivery_zip]}" if @quotation_request[:delivery_zip].present? %>
-                <% delivery_lines << "Country: #{@quotation_request[:delivery_country]}" if @quotation_request[:delivery_country].present? %>
+                <% delivery_lines << "Street Address: #{delivery_street}" if delivery_street.present? %>
+                <% delivery_lines << "City: #{delivery_city}" if delivery_city.present? %>
+                <% delivery_lines << "State/Province: #{delivery_state}" if delivery_state.present? %>
+                <% delivery_lines << "ZIP/Postal Code: #{delivery_zip}" if delivery_zip.present? %>
+                <% delivery_lines << "Country: #{delivery_country}" if delivery_country.present? %>
 
                 <% order_lines = [] %>
-                <% order_lines << "Order details: #{@quotation_request[:order_details]}" if @quotation_request[:order_details].present? %>
-                <% order_lines << "Timeframe: #{@quotation_request[:timeframe]}" if @quotation_request[:timeframe].present? %>
-                <% order_lines << "Delivery terms: #{@quotation_request[:delivery_terms]}" if @quotation_request[:delivery_terms].present? %>
-                <% order_lines << "Special requirements: #{@quotation_request[:special_requirements]}" if @quotation_request[:special_requirements].present? %>
+                <% order_lines << "Order details: #{order_details}" if order_details.present? %>
+                <% order_lines << "Timeframe: #{timeframe}" if timeframe.present? %>
+                <% order_lines << "Delivery terms: #{delivery_terms}" if delivery_terms.present? %>
+                <% order_lines << "Special requirements: #{special_requirements}" if special_requirements.present? %>
 
                 <% email_subject = "Quotation Request - #{current_user.name}" %>
                 <% email_body = [

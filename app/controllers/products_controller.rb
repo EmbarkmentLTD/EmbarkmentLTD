@@ -108,7 +108,11 @@ class ProductsController < ApplicationController
     @quantity = params[:quantity] || 1
 
     @quotation_items = get_quotation_items
-    @quotation_request = session[:quotation_request] || {}
+    if params[:quotation_request_id].present?
+      @quotation_request = QuotationRequest.includes(:quotation_items).find_by(id: params[:quotation_request_id])
+    else
+      @quotation_request = session[:quotation_request] || {}
+    end
 
     # Add to quotation session
     session[:quotation] ||= {}

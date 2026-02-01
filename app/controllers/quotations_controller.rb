@@ -46,16 +46,19 @@ class QuotationsController < ApplicationController
     special_requirements: quotation_params[:special_requirements]
   }
 
+    quotation_request = QuotationRequest.create!(quotation_data.except(:items))
+    @quotation_items.each do |product, quantity|
+      quotation_request.quotation_items.create!(product: product, quantity: quantity)
+    end
+
     # In production, you would send an email here
     # QuotationMailer.quotation_request(quotation_data).deliver_later
     Rails.logger.info "Quotation request received: #{quotation_data}"
 
-    session[:quotation_request] = quotation_data.except(:user, :items)
-
     first_item = @quotation_items.first
     if first_item
       product, quantity = first_item
-      redirect_to quotation_product_path(product, quantity: quantity), notice: "Quotation request ready. Choose email or WhatsApp to send."
+      redirect_to quotation_product_path(product, quantity: quantity, quotation_request_id: quotation_request.id), notice: "Quotation request ready. Choose email or WhatsApp to send."
     else
       redirect_to quotation_cart_path, alert: "Please add at least one product to your quotation request."
     end
