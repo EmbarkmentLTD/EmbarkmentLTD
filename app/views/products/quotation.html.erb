@@ -6,21 +6,58 @@
             <p class="text-gray-600">How would you like to receive your quotation?</p>
         </div>
 
-        <% items_list = @quotation_items.map { |product, quantity| "- #{product.name} (Qty: #{quantity})" }.join("\n") %>
-        <% request_details = [] %>
-        <% request_details << "Contact: #{@quotation_request[:contact_name]}" if @quotation_request[:contact_name].present? %>
-        <% request_details << "Email: #{@quotation_request[:contact_email]}" if @quotation_request[:contact_email].present? %>
-        <% request_details << "Phone: #{@quotation_request[:contact_phone]}" if @quotation_request[:contact_phone].present? %>
-        <% request_details << "Company: #{@quotation_request[:company]}" if @quotation_request[:company].present? %>
-        <% request_details << "Delivery: #{@quotation_request[:delivery_street]}, #{@quotation_request[:delivery_city]}, #{@quotation_request[:delivery_state]} #{@quotation_request[:delivery_zip]}, #{@quotation_request[:delivery_country]}" if @quotation_request[:delivery_street].present? %>
-        <% request_details << "Order details: #{@quotation_request[:order_details]}" if @quotation_request[:order_details].present? %>
-        <% request_details << "Timeframe: #{@quotation_request[:timeframe]}" if @quotation_request[:timeframe].present? %>
-        <% request_details << "Delivery terms: #{@quotation_request[:delivery_terms]}" if @quotation_request[:delivery_terms].present? %>
-        <% request_details << "Special requirements: #{@quotation_request[:special_requirements]}" if @quotation_request[:special_requirements].present? %>
+                <% items_list = @quotation_items.map { |product, quantity| "- #{product.name} (Qty: #{quantity})" }.join("\n") %>
+                <% contact_lines = [] %>
+                <% contact_lines << "Full Name: #{@quotation_request[:contact_name]}" if @quotation_request[:contact_name].present? %>
+                <% contact_lines << "Email: #{@quotation_request[:contact_email]}" if @quotation_request[:contact_email].present? %>
+                <% contact_lines << "Phone Number: #{@quotation_request[:contact_phone]}" if @quotation_request[:contact_phone].present? %>
+                <% contact_lines << "Company: #{@quotation_request[:company]}" if @quotation_request[:company].present? %>
 
-        <% email_subject = "Quotation Request - #{current_user.name}" %>
-        <% email_body = "Hello EmbarkmentLTD,\n\nI would like a quotation for:\n#{items_list}\n\n#{request_details.join("\n")}\n\nThank you." %>
-        <% whatsapp_message = "Hello EmbarkmentLTD! I would like a quotation for:\n#{items_list}\n\n#{request_details.join("\n")}" %>
+                <% delivery_lines = [] %>
+                <% delivery_lines << "Street Address: #{@quotation_request[:delivery_street]}" if @quotation_request[:delivery_street].present? %>
+                <% delivery_lines << "City: #{@quotation_request[:delivery_city]}" if @quotation_request[:delivery_city].present? %>
+                <% delivery_lines << "State/Province: #{@quotation_request[:delivery_state]}" if @quotation_request[:delivery_state].present? %>
+                <% delivery_lines << "ZIP/Postal Code: #{@quotation_request[:delivery_zip]}" if @quotation_request[:delivery_zip].present? %>
+                <% delivery_lines << "Country: #{@quotation_request[:delivery_country]}" if @quotation_request[:delivery_country].present? %>
+
+                <% order_lines = [] %>
+                <% order_lines << "Order details: #{@quotation_request[:order_details]}" if @quotation_request[:order_details].present? %>
+                <% order_lines << "Timeframe: #{@quotation_request[:timeframe]}" if @quotation_request[:timeframe].present? %>
+                <% order_lines << "Delivery terms: #{@quotation_request[:delivery_terms]}" if @quotation_request[:delivery_terms].present? %>
+                <% order_lines << "Special requirements: #{@quotation_request[:special_requirements]}" if @quotation_request[:special_requirements].present? %>
+
+                <% email_subject = "Quotation Request - #{current_user.name}" %>
+                <% email_body = [
+                    "Hello EmbarkmentLTD,",
+                    "",
+                    "I would like a quotation for:",
+                    items_list,
+                    "",
+                    (contact_lines.any? ? "Contact Information" : nil),
+                    (contact_lines.any? ? contact_lines.join("\n") : nil),
+                    (delivery_lines.any? ? "" : nil),
+                    (delivery_lines.any? ? "Delivery Information" : nil),
+                    (delivery_lines.any? ? delivery_lines.join("\n") : nil),
+                    (order_lines.any? ? "" : nil),
+                    (order_lines.any? ? "Additional Information" : nil),
+                    (order_lines.any? ? order_lines.join("\n") : nil),
+                    "",
+                    "Thank you."
+                ].compact.join("\n") %>
+
+                <% whatsapp_message = [
+                    "Hello EmbarkmentLTD! I would like a quotation for:",
+                    items_list,
+                    "",
+                    (contact_lines.any? ? "Contact Information" : nil),
+                    (contact_lines.any? ? contact_lines.join("\n") : nil),
+                    (delivery_lines.any? ? "" : nil),
+                    (delivery_lines.any? ? "Delivery Information" : nil),
+                    (delivery_lines.any? ? delivery_lines.join("\n") : nil),
+                    (order_lines.any? ? "" : nil),
+                    (order_lines.any? ? "Additional Information" : nil),
+                    (order_lines.any? ? order_lines.join("\n") : nil)
+                ].compact.join("\n") %>
 
         <div class="grid md:grid-cols-2 gap-6">
             <!-- Email Quotation -->
