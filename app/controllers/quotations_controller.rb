@@ -70,6 +70,11 @@ class QuotationsController < ApplicationController
     redirect_to quotation_cart_path, notice: "Item removed from quotation request."
   end
 
+  def clear_cart
+    session.delete(:quotation)
+    head :ok
+  end
+
   private
 
   def get_quotation_items
