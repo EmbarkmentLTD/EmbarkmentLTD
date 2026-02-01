@@ -3,8 +3,24 @@
         <h1 class="text-2xl font-bold text-gray-800 mb-6">Choose Quotation Method</h1>
 
         <div class="mb-4">
-            <p class="text-gray-600">How would you like to receive your quotation for <strong><%= @product.name %></strong>?</p>
+            <p class="text-gray-600">How would you like to receive your quotation?</p>
         </div>
+
+        <% items_list = @quotation_items.map { |product, quantity| "- #{product.name} (Qty: #{quantity})" }.join("\n") %>
+        <% request_details = [] %>
+        <% request_details << "Contact: #{@quotation_request[:contact_name]}" if @quotation_request[:contact_name].present? %>
+        <% request_details << "Email: #{@quotation_request[:contact_email]}" if @quotation_request[:contact_email].present? %>
+        <% request_details << "Phone: #{@quotation_request[:contact_phone]}" if @quotation_request[:contact_phone].present? %>
+        <% request_details << "Company: #{@quotation_request[:company]}" if @quotation_request[:company].present? %>
+        <% request_details << "Delivery: #{@quotation_request[:delivery_street]}, #{@quotation_request[:delivery_city]}, #{@quotation_request[:delivery_state]} #{@quotation_request[:delivery_zip]}, #{@quotation_request[:delivery_country]}" if @quotation_request[:delivery_street].present? %>
+        <% request_details << "Order details: #{@quotation_request[:order_details]}" if @quotation_request[:order_details].present? %>
+        <% request_details << "Timeframe: #{@quotation_request[:timeframe]}" if @quotation_request[:timeframe].present? %>
+        <% request_details << "Delivery terms: #{@quotation_request[:delivery_terms]}" if @quotation_request[:delivery_terms].present? %>
+        <% request_details << "Special requirements: #{@quotation_request[:special_requirements]}" if @quotation_request[:special_requirements].present? %>
+
+        <% email_subject = "Quotation Request - #{current_user.name}" %>
+        <% email_body = "Hello EmbarkmentLTD,\n\nI would like a quotation for:\n#{items_list}\n\n#{request_details.join("\n")}\n\nThank you." %>
+        <% whatsapp_message = "Hello EmbarkmentLTD! I would like a quotation for:\n#{items_list}\n\n#{request_details.join("\n")}" %>
 
         <div class="grid md:grid-cols-2 gap-6">
             <!-- Email Quotation -->
@@ -16,9 +32,7 @@
                 </div>
                 <h3 class="text-xl font-semibold text-gray-800 mb-2">Request via Email</h3>
                 <p class="text-gray-600 mb-4">Open your email app with a pre-filled quotation request</p>
-                <% email_subject = "Quotation Request - #{@product.name}" %>
-                <% email_body = "Hello EmbarkmentLTD,%0D%0A%0D%0AI would like a quotation for:%0D%0AProduct: #{@product.name}%0D%0AQuantity: #{@quantity}%0D%0A%0D%0AThank you." %>
-                <%= link_to "Email Quotation Request", "mailto:info@embarkment.co.uk?subject=#{email_subject}&body=#{email_body}", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200" %>
+                <%= link_to "Email Quotation Request", "mailto:info@embarkment.co.uk?subject=#{ERB::Util.url_encode(email_subject)}&body=#{ERB::Util.url_encode(email_body)}", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200" %>
             </div>
 
             <!-- WhatsApp Quotation -->
@@ -44,9 +58,7 @@
 
 <script>
     function openWhatsApp() {
-        const productName = "<%= @product.name %>";
-        const quantity = "<%= @quantity %>";
-        const message = `Hello EmbarkmentLTD! I would like to get a quotation for:\n\nProduct: ${productName}\nQuantity: ${quantity}\n\nPlease send me the quotation details.`;
+        const message = `<%= j(whatsapp_message) %>`;
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/447944294761?text=${encodedMessage}`;
 

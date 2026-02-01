@@ -107,6 +107,9 @@ class ProductsController < ApplicationController
     @product = Product.find(params[:id])
     @quantity = params[:quantity] || 1
 
+    @quotation_items = get_quotation_items
+    @quotation_request = session[:quotation_request] || {}
+
     # Add to quotation session
     session[:quotation] ||= {}
     session[:quotation][@product.id.to_s] = @quantity.to_i
@@ -118,6 +121,18 @@ class ProductsController < ApplicationController
 
   def set_product
     @product = Product.find(params[:id])
+  end
+
+  def get_quotation_items
+    return {} unless session[:quotation].is_a?(Hash)
+
+    items = {}
+    session[:quotation].each do |product_id, quantity|
+      product = Product.find_by(id: product_id)
+      items[product] = quantity.to_i if product
+    end
+
+    items
   end
 
   def authorize_supplier
