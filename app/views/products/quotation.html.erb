@@ -7,7 +7,16 @@
         </div>
 
                 <% if @quotation_request.is_a?(QuotationRequest) %>
-                    <% items_list = @quotation_request.quotation_items.includes(:product).map { |item| "- #{item.product.name} (Qty: #{item.quantity})" }.join("\n") %>
+                    <% items_data = @quotation_request.quotation_items.includes(:product).map do |item|
+                        unit_price = item.product.price.to_d
+                        line_total = unit_price * item.quantity.to_i
+                        {
+                          name: item.product.name,
+                          quantity: item.quantity,
+                          unit_price: unit_price,
+                          line_total: line_total
+                        }
+                    end %>
                     <% contact_name = @quotation_request.contact_name %>
                     <% contact_email = @quotation_request.contact_email %>
                     <% contact_phone = @quotation_request.contact_phone %>
@@ -22,7 +31,16 @@
                     <% delivery_terms = @quotation_request.delivery_terms %>
                     <% special_requirements = @quotation_request.special_requirements %>
                 <% else %>
-                    <% items_list = @quotation_items.map { |product, quantity| "- #{product.name} (Qty: #{quantity})" }.join("\n") %>
+                    <% items_data = @quotation_items.map do |product, quantity|
+                        unit_price = product.price.to_d
+                        line_total = unit_price * quantity.to_i
+                        {
+                          name: product.name,
+                          quantity: quantity,
+                          unit_price: unit_price,
+                          line_total: line_total
+                        }
+                    end %>
                     <% contact_name = @quotation_request[:contact_name] %>
                     <% contact_email = @quotation_request[:contact_email] %>
                     <% contact_phone = @quotation_request[:contact_phone] %>
@@ -37,6 +55,9 @@
                     <% delivery_terms = @quotation_request[:delivery_terms] %>
                     <% special_requirements = @quotation_request[:special_requirements] %>
                 <% end %>
+
+                <% items_list = items_data.map { |item| "- #{item[:name]} (Qty: #{item[:quantity]}, Unit Price: #{number_to_currency(item[:unit_price], unit: "£")}, Line Total: #{number_to_currency(item[:line_total], unit: "£")})" }.join("\n") %>
+                <% total_price = items_data.sum { |item| item[:line_total] } %>
 
                 <% contact_lines = [] %>
                 <% contact_lines << "Full Name: #{contact_name}" if contact_name.present? %>
@@ -63,6 +84,7 @@
                     "",
                     "I would like a quotation for:",
                     items_list,
+                    "Total: #{number_to_currency(total_price, unit: "£")}",
                     "",
                     (contact_lines.any? ? "Contact Information" : nil),
                     (contact_lines.any? ? contact_lines.join("\n") : nil),
@@ -79,6 +101,7 @@
                 <% whatsapp_message = [
                     "Hello EmbarkmentLTD! I would like a quotation for:",
                     items_list,
+                    "Total: #{number_to_currency(total_price, unit: "£")}",
                     "",
                     (contact_lines.any? ? "Contact Information" : nil),
                     (contact_lines.any? ? contact_lines.join("\n") : nil),
