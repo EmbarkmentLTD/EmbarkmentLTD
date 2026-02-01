@@ -2,6 +2,15 @@ class QuotationsController < ApplicationController
   before_action :authenticate_user!
 
   def cart
+    if params[:product_id].present?
+      product = Product.find_by(id: params[:product_id])
+      if product
+        session[:quotation] ||= {}
+        quantity = params[:quantity].presence || 1
+        session[:quotation][product.id.to_s] = quantity.to_i
+      end
+    end
+
     @quotation_items = get_quotation_items
   end
 
@@ -41,10 +50,15 @@ class QuotationsController < ApplicationController
     # QuotationMailer.quotation_request(quotation_data).deliver_later
     Rails.logger.info "Quotation request received: #{quotation_data}"
 
-    # Clear quotation session
-    session[:quotation] = {}
+    session[:quotation_request] = quotation_data.except(:user, :items)
 
-    redirect_to root_path, notice: "Quotation request sent successfully! We will contact you shortly."
+    first_item = @quotation_items.first
+    if first_item
+      product, quantity = first_item
+      redirect_to quotation_product_path(product, quantity: quantity), notice: "Quotation request ready. Choose email or WhatsApp to send."
+    else
+      redirect_to quotation_cart_path, alert: "Please add at least one product to your quotation request."
+    end
   end
 
   def remove_quotation_item
