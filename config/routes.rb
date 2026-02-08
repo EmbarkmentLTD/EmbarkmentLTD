@@ -62,6 +62,7 @@ Rails.application.routes.draw do
   # Admin namespace routes
   namespace :admin do
     get "/dashboard", to: "dashboard#index"
+    get "/dashboard/charts", to: "dashboard#charts"
     get "dashboard/verification_stats", to: "dashboard#verification_stats" # Add this line
     resources :users, only: [ :index, :new, :show, :create, :edit, :update, :destroy ]
     resources :products, only: [ :index, :show, :new, :create, :edit, :update, :destroy ]

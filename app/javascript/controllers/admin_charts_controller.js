@@ -5,17 +5,15 @@ export default class extends Controller {
     this.ensureChart().then((ready) => {
       if (!ready) return
 
-      const signupLabels = this.parseJSON(this.element.dataset.adminChartsSignupLabels)
-      const signupSeries = this.parseJSON(this.element.dataset.adminChartsSignupSeries)
-      const categoryLabels = this.parseJSON(this.element.dataset.adminChartsCategoryLabels)
-      const categorySeries = this.parseJSON(this.element.dataset.adminChartsCategorySeries)
-      const pageviewLabels = this.parseJSON(this.element.dataset.adminChartsPageviewLabels)
-      const pageviewSeries = this.parseJSON(this.element.dataset.adminChartsPageviewSeries)
-
-      this.renderSignups(signupLabels, signupSeries)
-      this.renderCategories(categoryLabels, categorySeries)
-      this.renderPageViews(pageviewLabels, pageviewSeries)
+      this.loadCharts()
+      this.poller = setInterval(() => this.loadCharts(), 30000)
     })
+  }
+
+  disconnect() {
+    if (this.poller) {
+      clearInterval(this.poller)
+    }
   }
 
   async ensureChart() {
@@ -30,12 +28,20 @@ export default class extends Controller {
     }
   }
 
-  parseJSON(value) {
-    if (!value) return null
+  async loadCharts() {
+    const url = this.element.dataset.adminChartsUrl
+    if (!url) return
+
     try {
-      return JSON.parse(value)
+      const response = await fetch(url, { credentials: "same-origin" })
+      if (!response.ok) return
+
+      const data = await response.json()
+      this.renderSignups(data.signup_labels, data.signup_series)
+      this.renderCategories(data.category_labels, data.category_series)
+      this.renderPageViews(data.pageview_labels, data.pageview_series)
     } catch (error) {
-      return null
+      return
     }
   }
 
@@ -43,7 +49,14 @@ export default class extends Controller {
     const ctx = document.getElementById("signupsChart")
     if (!ctx || !labels || !series) return
 
-    new Chart(ctx, {
+    if (this.signupsChart) {
+      this.signupsChart.data.labels = labels
+      this.signupsChart.data.datasets[0].data = series
+      this.signupsChart.update()
+      return
+    }
+
+    this.signupsChart = new Chart(ctx, {
       type: "line",
       data: {
         labels,
@@ -81,7 +94,14 @@ export default class extends Controller {
       fill: false
     }))
 
-    new Chart(ctx, {
+    if (this.categoriesChart) {
+      this.categoriesChart.data.labels = labels
+      this.categoriesChart.data.datasets = datasets
+      this.categoriesChart.update()
+      return
+    }
+
+    this.categoriesChart = new Chart(ctx, {
       type: "line",
       data: {
         labels,
@@ -112,7 +132,14 @@ export default class extends Controller {
 
     if (datasets.length === 0) return
 
-    new Chart(ctx, {
+    if (this.pageViewsChart) {
+      this.pageViewsChart.data.labels = labels
+      this.pageViewsChart.data.datasets = datasets
+      this.pageViewsChart.update()
+      return
+    }
+
+    this.pageViewsChart = new Chart(ctx, {
       type: "line",
       data: {
         labels,
