@@ -22,7 +22,7 @@ class UsersController < ApplicationController
 
   def profile
     @user = current_user
-    @orders = current_user.orders.includes(:order_items, :products).order(created_at: :desc).page(params[:page]).per(10)
+    @quotation_requests = current_user.quotation_requests.includes(:quotation_items, :user).order(created_at: :desc).page(params[:page]).per(10)
     @products = current_user.products.includes(:reviews).order(created_at: :desc).page(params[:page]).per(10)
   end
 

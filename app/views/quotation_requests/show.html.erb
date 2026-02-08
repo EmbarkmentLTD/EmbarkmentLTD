@@ -1,0 +1,53 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Quotation Request #<%= @quotation_request.id %></h1>
+                <p class="text-gray-600">Submitted on <%= @quotation_request.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+            </div>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize bg-green-100 text-green-800">
+                <%= @quotation_request.requested_via.to_s.titleize %>
+            </span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+        <p class="text-gray-700">Name: <%= @quotation_request.contact_name %></p>
+        <p class="text-gray-700">Email: <%= @quotation_request.contact_email %></p>
+        <p class="text-gray-700">Phone: <%= @quotation_request.contact_phone %></p>
+        <% if @quotation_request.company.present? %>
+        <p class="text-gray-700">Company: <%= @quotation_request.company %></p>
+        <% end %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Delivery Information</h2>
+        <p class="text-gray-700"><%= @quotation_request.delivery_street %></p>
+        <p class="text-gray-700"><%= @quotation_request.delivery_city %>, <%= @quotation_request.delivery_state %> <%= @quotation_request.delivery_zip %></p>
+        <p class="text-gray-700"><%= @quotation_request.delivery_country %></p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Items</h2>
+        <div class="space-y-4">
+            <% @quotation_request.quotation_items.each do |item| %>
+            <div class="flex items-center justify-between border-b pb-3 last:border-b-0">
+                <div>
+                    <p class="font-medium text-gray-900"><%= item.product.name %></p>
+                    <p class="text-sm text-gray-600">Qty: <%= item.quantity %></p>
+                </div>
+                <p class="text-sm text-gray-600">£<%= item.product.price %> / <%= item.product.unit %></p>
+            </div>
+            <% end %>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Additional Information</h2>
+        <p class="text-gray-700"><strong>Order details:</strong> <%= @quotation_request.order_details.presence || "-" %></p>
+        <p class="text-gray-700"><strong>Timeframe:</strong> <%= @quotation_request.timeframe.presence || "-" %></p>
+        <p class="text-gray-700"><strong>Delivery terms:</strong> <%= @quotation_request.delivery_terms.presence || "-" %></p>
+        <p class="text-gray-700"><strong>Special requirements:</strong> <%= @quotation_request.special_requirements.presence || "-" %></p>
+    </div>
+</div>

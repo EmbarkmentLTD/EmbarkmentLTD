@@ -1,0 +1,34 @@
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">Quotation Requests</h1>
+
+    <div class="bg-white rounded-lg shadow border overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested Via</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <% @quotation_requests.each do |request| %>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#<%= request.id %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= request.user.name %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= request.requested_via.to_s.titleize %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= request.created_at.strftime("%b %d, %Y") %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <%= link_to 'View', admin_quotation_request_path(request), class: "text-green-600 hover:text-green-900" %>
+                    </td>
+                </tr>
+                <% end %>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6">
+        <%= paginate @quotation_requests %>
+    </div>
+</div>
