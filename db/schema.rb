@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_26_160849) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_08_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,6 +63,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_26_160849) do
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
+  create_table "page_views", force: :cascade do |t|
+    t.string "path", null: false
+    t.date "viewed_on", null: false
+    t.integer "count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["path", "viewed_on"], name: "index_page_views_on_path_and_viewed_on", unique: true
+    t.index ["viewed_on"], name: "index_page_views_on_viewed_on"
+  end
+
   create_table "pages", force: :cascade do |t|
     t.string "title"
     t.string "slug"
@@ -94,6 +104,39 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_26_160849) do
     t.index ["user_id"], name: "index_products_on_user_id"
   end
 
+  create_table "quotation_items", force: :cascade do |t|
+    t.bigint "quotation_request_id", null: false
+    t.bigint "product_id", null: false
+    t.integer "quantity", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_quotation_items_on_product_id"
+    t.index ["quotation_request_id", "product_id"], name: "index_quotation_items_on_request_and_product", unique: true
+    t.index ["quotation_request_id"], name: "index_quotation_items_on_quotation_request_id"
+  end
+
+  create_table "quotation_requests", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "contact_name", null: false
+    t.string "contact_email", null: false
+    t.string "contact_phone", null: false
+    t.string "company"
+    t.string "delivery_street"
+    t.string "delivery_city"
+    t.string "delivery_state"
+    t.string "delivery_zip"
+    t.string "delivery_country"
+    t.text "order_details"
+    t.string "timeframe"
+    t.string "delivery_terms"
+    t.text "special_requirements"
+    t.string "requested_via", default: "email", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requested_via"], name: "index_quotation_requests_on_requested_via"
+    t.index ["user_id"], name: "index_quotation_requests_on_user_id"
+  end
+
   create_table "reviews", force: :cascade do |t|
     t.bigint "product_id", null: false
     t.bigint "user_id", null: false
@@ -102,6 +145,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_26_160849) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "flagged"
+    t.text "supplier_response"
+    t.datetime "supplier_response_at"
     t.index ["product_id"], name: "index_reviews_on_product_id"
     t.index ["user_id"], name: "index_reviews_on_user_id"
   end
@@ -156,6 +201,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_26_160849) do
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "users"
   add_foreign_key "products", "users"
+  add_foreign_key "quotation_items", "products"
+  add_foreign_key "quotation_items", "quotation_requests"
+  add_foreign_key "quotation_requests", "users"
   add_foreign_key "reviews", "products"
   add_foreign_key "reviews", "users"
 end
