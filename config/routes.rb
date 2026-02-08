@@ -39,6 +39,7 @@ Rails.application.routes.draw do
   get "quotations/cart", to: "quotations#cart", as: "quotation_cart"
   post "quotations/submit_email_quotation", to: "quotations#submit_email_quotation", as: "submit_email_quotation"
   post "quotations/clear_cart", to: "quotations#clear_cart", as: "clear_quotation_cart"
+  post "quotations/mark_requested_via", to: "quotations#mark_requested_via", as: "mark_quotation_requested_via"
   delete "quotations/remove_quotation_item/:product_id", to: "quotations#remove_quotation_item", as: "remove_quotation_item"
 
   # User routes

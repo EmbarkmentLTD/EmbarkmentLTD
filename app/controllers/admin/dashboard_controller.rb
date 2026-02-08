@@ -12,7 +12,7 @@ class Admin::DashboardController < ApplicationController
     @orders_count = Order.count
     @reviews_count = Review.count
     @support_messages_count = SupportMessage.count
-    @recent_orders = Order.includes(:user).order(created_at: :desc).limit(5)
+    @recent_quotation_requests = QuotationRequest.includes(:user).order(created_at: :desc).limit(5)
     @recent_products = Product.includes(:user).order(created_at: :desc).limit(5)
 
       # Platform Intelligence Features - REAL CALCULATIONS

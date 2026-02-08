@@ -24,8 +24,32 @@ export default class extends Controller {
       window.Chart = module.default
       return true
     } catch (error) {
-      return false
+      return this.loadChartFromCdn()
     }
+  }
+
+  loadChartFromCdn() {
+    return new Promise((resolve) => {
+      if (window.Chart) {
+        resolve(true)
+        return
+      }
+
+      const existing = document.querySelector("script[data-chartjs]")
+      if (existing) {
+        existing.addEventListener("load", () => resolve(!!window.Chart))
+        existing.addEventListener("error", () => resolve(false))
+        return
+      }
+
+      const script = document.createElement("script")
+      script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"
+      script.async = true
+      script.dataset.chartjs = "true"
+      script.addEventListener("load", () => resolve(!!window.Chart))
+      script.addEventListener("error", () => resolve(false))
+      document.head.appendChild(script)
+    })
   }
 
   async loadCharts() {
