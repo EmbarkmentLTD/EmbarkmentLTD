@@ -87,23 +87,23 @@ Rails.application.configure do
   # GoDaddy SMTP Settings - Port 587 with STARTTLS
   config.action_mailer.smtp_settings = {
     # Server address
-    address: "smtpout.secureserver.net",
+    address: ENV.fetch("SMTP_ADDRESS", "smtpout.secureserver.net"),
 
     # Port 587 for STARTTLS (recommended)
-    port: 587,
+    port: ENV.fetch("SMTP_PORT", 587).to_i,
 
     # Your GoDaddy domain
-    domain: "llw-cs.com",
+    domain: ENV.fetch("SMTP_DOMAIN", "embarkment.co.uk"),
 
     # Your GoDaddy email credentials
-    user_name: "company@llw-cs.com",
-    password: "Consultancy25$",
+    user_name: ENV["SMTP_USERNAME"],
+    password: ENV["SMTP_PASSWORD"],
 
     # Authentication type (GoDaddy uses PLAIN)
     authentication: :plain,
 
     # Enable STARTTLS for secure connection
-    enable_starttls_auto: true,
+    enable_starttls_auto: ENV.fetch("SMTP_STARTTLS", "true") == "true",
 
     # Timeout settings
     open_timeout: 30,
@@ -112,34 +112,20 @@ Rails.application.configure do
     # Optional: Disable SSL certificate verification if needed
     # openssl_verify_mode: 'none'
 
-    openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
+    openssl_verify_mode: ENV.fetch("SMTP_OPENSSL_VERIFY_MODE", "peer") == "none" ? OpenSSL::SSL::VERIFY_NONE : OpenSSL::SSL::VERIFY_PEER
   }
 
   # Default email headers
   config.action_mailer.default_options = {
-    from: "EmbarkmentLTD <company@llw-cs.com>",
-    reply_to: "company@llw-cs.com"
+    from: ENV.fetch("MAILER_FROM", "EmbarkmentLTD <info@embarkment.co.uk>"),
+    reply_to: ENV.fetch("MAILER_REPLY_TO", "info@embarkment.co.uk")
   }
 
   # URL options for links in emails
   config.action_mailer.default_url_options = {
-    host: "llw-cs.com",
-    protocol: "https"
+    host: ENV.fetch("APP_HOST", "embarkment.co.uk"),
+    protocol: ENV.fetch("APP_PROTOCOL", "https")
   }
-
-
-  #   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-  #   config.action_mailer.delivery_method = :sendgrid_actionmailer
-
-  #   config.action_mailer.default_options = {
-  #   from: 'EmbarkmentLTD <company@llw-cs.com>',
-  #   reply_to: 'company@llw-cs.com'
-  # }
-
-  # config.action_mailer.default_url_options = {
-  #   host: 'llw-cs.com',
-  #   protocol: 'https'
-  # }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

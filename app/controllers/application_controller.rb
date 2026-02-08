@@ -35,6 +35,7 @@ class ApplicationController < ActionController::Base
   def track_page_view
     return unless request.get?
     return unless request.format.html?
+    return unless PageView.table_exists?
 
     path = request.path
     return if path.start_with?("/assets", "/files", "/rails/active_storage")

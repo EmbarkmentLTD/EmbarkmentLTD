@@ -58,19 +58,24 @@ class Admin::DashboardController < ApplicationController
       date_range.map { |d| category_counts[[ d, category ]] || 0 }
     end
 
-    pageview_counts = PageView.where(viewed_on: date_range)
-                             .group(:path)
-                             .sum(:count)
+    if PageView.table_exists?
+      pageview_counts = PageView.where(viewed_on: date_range)
+                               .group(:path)
+                               .sum(:count)
 
-    top_paths = pageview_counts.sort_by { |_, count| -count }.first(5).map(&:first)
+      top_paths = pageview_counts.sort_by { |_, count| -count }.first(5).map(&:first)
 
-    pageviews_by_day = PageView.where(viewed_on: date_range, path: top_paths)
-                              .group(:viewed_on, :path)
-                              .sum(:count)
+      pageviews_by_day = PageView.where(viewed_on: date_range, path: top_paths)
+                                .group(:viewed_on, :path)
+                                .sum(:count)
 
-    @pageview_labels = @signup_labels
-    @pageview_series = top_paths.index_with do |path|
-      date_range.map { |d| pageviews_by_day[[ d, path ]] || 0 }
+      @pageview_labels = @signup_labels
+      @pageview_series = top_paths.index_with do |path|
+        date_range.map { |d| pageviews_by_day[[ d, path ]] || 0 }
+      end
+    else
+      @pageview_labels = @signup_labels
+      @pageview_series = {}
     end
   end
 

@@ -39,7 +39,7 @@
     <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
 
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true, async: true %>
+    <%= javascript_importmap_tags %>
 
     <link rel="preconnect" href="https://unpkg.com">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
