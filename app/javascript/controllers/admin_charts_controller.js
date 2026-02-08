@@ -2,18 +2,32 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   connect() {
-    if (!window.Chart) return
+    this.ensureChart().then((ready) => {
+      if (!ready) return
 
-    const signupLabels = this.parseJSON(this.element.dataset.adminChartsSignupLabels)
-    const signupSeries = this.parseJSON(this.element.dataset.adminChartsSignupSeries)
-    const categoryLabels = this.parseJSON(this.element.dataset.adminChartsCategoryLabels)
-    const categorySeries = this.parseJSON(this.element.dataset.adminChartsCategorySeries)
-    const pageviewLabels = this.parseJSON(this.element.dataset.adminChartsPageviewLabels)
-    const pageviewSeries = this.parseJSON(this.element.dataset.adminChartsPageviewSeries)
+      const signupLabels = this.parseJSON(this.element.dataset.adminChartsSignupLabels)
+      const signupSeries = this.parseJSON(this.element.dataset.adminChartsSignupSeries)
+      const categoryLabels = this.parseJSON(this.element.dataset.adminChartsCategoryLabels)
+      const categorySeries = this.parseJSON(this.element.dataset.adminChartsCategorySeries)
+      const pageviewLabels = this.parseJSON(this.element.dataset.adminChartsPageviewLabels)
+      const pageviewSeries = this.parseJSON(this.element.dataset.adminChartsPageviewSeries)
 
-    this.renderSignups(signupLabels, signupSeries)
-    this.renderCategories(categoryLabels, categorySeries)
-    this.renderPageViews(pageviewLabels, pageviewSeries)
+      this.renderSignups(signupLabels, signupSeries)
+      this.renderCategories(categoryLabels, categorySeries)
+      this.renderPageViews(pageviewLabels, pageviewSeries)
+    })
+  }
+
+  async ensureChart() {
+    if (window.Chart) return true
+
+    try {
+      const module = await import("chart.js/auto")
+      window.Chart = module.default
+      return true
+    } catch (error) {
+      return false
+    }
   }
 
   parseJSON(value) {
