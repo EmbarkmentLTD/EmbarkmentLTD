@@ -75,6 +75,24 @@ class QuotationsController < ApplicationController
     head :ok
   end
 
+  def mark_requested_via
+    request_id = params[:quotation_request_id]
+    medium = params[:requested_via]
+
+    unless %w[email whatsapp].include?(medium)
+      head :unprocessable_entity
+      return
+    end
+
+    quotation_request = current_user.quotation_requests.find_by(id: request_id)
+    if quotation_request
+      quotation_request.update!(requested_via: medium)
+      head :ok
+    else
+      head :not_found
+    end
+  end
+
   private
 
   def get_quotation_items

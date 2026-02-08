@@ -123,7 +123,7 @@
                 </div>
                 <h3 class="text-xl font-semibold text-gray-800 mb-2">Request via Email</h3>
                 <p class="text-gray-600 mb-4">Open your email app with a pre-filled quotation request</p>
-                <%= link_to "Email Quotation Request", "mailto:info@embarkment.co.uk?subject=#{ERB::Util.url_encode(email_subject)}&body=#{ERB::Util.url_encode(email_body)}", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200", onclick: "clearQuotationCart()" %>
+                <%= link_to "Email Quotation Request", "mailto:info@embarkment.co.uk?subject=#{ERB::Util.url_encode(email_subject)}&body=#{ERB::Util.url_encode(email_body)}", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200", onclick: "markQuotationRequestedVia('email'); clearQuotationCart();" %>
             </div>
 
             <!-- WhatsApp Quotation -->
@@ -148,6 +148,22 @@
 </div>
 
 <script>
+    function markQuotationRequestedVia(medium) {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+        const requestId = "<%= @quotation_request.is_a?(QuotationRequest) ? @quotation_request.id : nil %>";
+        if (!requestId) return;
+
+        fetch("<%= mark_quotation_requested_via_path %>", {
+            method: "POST",
+            headers: {
+                "X-CSRF-Token": token,
+                "Content-Type": "application/json"
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({ quotation_request_id: requestId, requested_via: medium })
+        });
+    }
+
     function clearQuotationCart() {
         const token = document.querySelector('meta[name="csrf-token"]')?.content;
         fetch("<%= clear_quotation_cart_path %>", {
@@ -160,6 +176,7 @@
     }
 
     function openWhatsApp() {
+        markQuotationRequestedVia('whatsapp');
         clearQuotationCart();
         const message = `<%= j(whatsapp_message) %>`;
         const encodedMessage = encodeURIComponent(message);

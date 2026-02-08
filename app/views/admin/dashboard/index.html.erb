@@ -125,19 +125,20 @@
     <!-- Recent Activity -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div class="bg-white p-6 rounded-lg shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Orders</h2>
-            <% if @recent_orders.any? %>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Quotation Requests</h2>
+            <% if @recent_quotation_requests.any? %>
             <div class="space-y-4">
-                <% @recent_orders.each do |order| %>
+                <% @recent_quotation_requests.each do |request| %>
                 <div class="border-b pb-4 last:border-b-0">
-                    <p class="font-medium">Order #<%= order.id %></p>
-                    <p class="text-gray-600">By <%= order.user.name %></p>
-                    <p class="text-xs text-gray-500"><%= order.created_at.strftime("%b %d, %Y") %></p>
+                    <p class="font-medium">Request #<%= request.id %></p>
+                    <p class="text-gray-600">By <%= request.user.name %></p>
+                    <p class="text-xs text-gray-500"><%= request.created_at.strftime("%b %d, %Y") %></p>
+                    <p class="text-xs text-gray-500">Requested via: <%= request.requested_via.to_s.titleize %></p>
                 </div>
                 <% end %>
             </div>
             <% else %>
-            <p class="text-gray-500">No recent orders</p>
+            <p class="text-gray-500">No recent quotation requests</p>
             <% end %>
         </div>
 

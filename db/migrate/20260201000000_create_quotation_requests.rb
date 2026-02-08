@@ -15,6 +15,7 @@ class CreateQuotationRequests < ActiveRecord::Migration[8.0]
       t.string :timeframe
       t.string :delivery_terms
       t.text :special_requirements
+      t.string :requested_via, null: false, default: "email"
 
       t.timestamps
     end
