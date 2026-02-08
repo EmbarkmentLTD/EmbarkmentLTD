@@ -68,8 +68,14 @@
         </div>
     </div>
 
-    <!-- Charts -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+        <!-- Charts -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8" data-controller="admin-charts"
+            data-admin-charts-signup-labels="<%= ERB::Util.json_escape(@signup_labels.to_json) %>"
+            data-admin-charts-signup-series="<%= ERB::Util.json_escape(@signup_series.to_json) %>"
+            data-admin-charts-category-labels="<%= ERB::Util.json_escape(@category_labels.to_json) %>"
+            data-admin-charts-category-series="<%= ERB::Util.json_escape(@category_series.to_json) %>"
+            data-admin-charts-pageview-labels="<%= ERB::Util.json_escape(@pageview_labels.to_json) %>"
+            data-admin-charts-pageview-series="<%= ERB::Util.json_escape(@pageview_series.to_json) %>">
         <div class="bg-white p-6 rounded-lg shadow-sm xl:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900">User Signups (30 days)</h2>
@@ -157,89 +163,4 @@
             <% end %>
         </div>
     </div>
-</div>
-
-<script>
-    document.addEventListener("turbo:load", () => {
-        if (!window.Chart) return;
-
-        const signupLabels = <%= raw @signup_labels.to_json %>;
-        const signupSeries = <%= raw @signup_series.to_json %>;
-        const categoryLabels = <%= raw @category_labels.to_json %>;
-        const categorySeries = <%= raw @category_series.to_json %>;
-        const pageviewLabels = <%= raw @pageview_labels.to_json %>;
-        const pageviewSeries = <%= raw @pageview_series.to_json %>;
-
-        const signupsCtx = document.getElementById("signupsChart");
-        if (signupsCtx) {
-            new Chart(signupsCtx, {
-                type: "line",
-                data: {
-                    labels: signupLabels,
-                    datasets: [{
-                        label: "Signups",
-                        data: signupSeries,
-                        borderColor: "#16a34a",
-                        backgroundColor: "rgba(22, 163, 74, 0.12)",
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { ticks: { maxTicksLimit: 8 } } }
-                }
-            });
-        }
-
-        const pageViewsCtx = document.getElementById("pageViewsChart");
-        if (pageViewsCtx) {
-            new Chart(pageViewsCtx, {
-                type: "line",
-                data: {
-                    labels: pageviewLabels,
-                    datasets: Object.entries(pageviewSeries).map(([path, series], index) => ({
-                        label: path,
-                        data: series,
-                        borderColor: ["#2563eb", "#16a34a", "#f59e0b", "#7c3aed", "#ef4444"][index % 5],
-                        backgroundColor: "rgba(37, 99, 235, 0.08)",
-                        tension: 0.3,
-                        fill: false
-                    }))
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: "bottom" } },
-                    scales: { x: { ticks: { maxTicksLimit: 8 } } }
-                }
-            });
-        }
-
-        const categoriesCtx = document.getElementById("categoriesChart");
-        if (categoriesCtx) {
-            new Chart(categoriesCtx, {
-                type: "line",
-                data: {
-                    labels: categoryLabels,
-                    datasets: Object.entries(categorySeries).map(([category, series], index) => ({
-                        label: category,
-                        data: series,
-                        borderColor: ["#16a34a", "#22c55e", "#f59e0b", "#3b82f6", "#a855f7"][index % 5],
-                        backgroundColor: "rgba(22, 163, 74, 0.08)",
-                        tension: 0.3,
-                        fill: false
-                    }))
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: "bottom" } },
-                    scales: { x: { ticks: { maxTicksLimit: 8 } } }
-                }
-            });
-        }
-    });
-</script>
+    </div>
