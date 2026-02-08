@@ -69,13 +69,8 @@
     </div>
 
         <!-- Charts -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8" data-controller="admin-charts"
-            data-admin-charts-signup-labels="<%= ERB::Util.json_escape(@signup_labels.to_json) %>"
-            data-admin-charts-signup-series="<%= ERB::Util.json_escape(@signup_series.to_json) %>"
-            data-admin-charts-category-labels="<%= ERB::Util.json_escape(@category_labels.to_json) %>"
-            data-admin-charts-category-series="<%= ERB::Util.json_escape(@category_series.to_json) %>"
-            data-admin-charts-pageview-labels="<%= ERB::Util.json_escape(@pageview_labels.to_json) %>"
-            data-admin-charts-pageview-series="<%= ERB::Util.json_escape(@pageview_series.to_json) %>">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8" data-controller="admin-charts"
+                data-admin-charts-url="<%= admin_dashboard_charts_path(format: :json) %>">
         <div class="bg-white p-6 rounded-lg shadow-sm xl:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900">User Signups (30 days)</h2>

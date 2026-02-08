@@ -35,48 +35,18 @@ class Admin::DashboardController < ApplicationController
                             .order(created_at: :desc)
                             .limit(10)
 
-    date_range = (29.days.ago.to_date..Date.current).to_a
+    chart_data = build_chart_data
+    @signup_labels = chart_data[:signup_labels]
+    @signup_series = chart_data[:signup_series]
+    @category_labels = chart_data[:category_labels]
+    @category_series = chart_data[:category_series]
+    @pageview_labels = chart_data[:pageview_labels]
+    @pageview_series = chart_data[:pageview_series]
+  end
 
-    signups_by_day = User.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
-                          .group("DATE(created_at)")
-                          .count
-    @signup_labels = date_range.map { |d| d.strftime("%b %d") }
-    @signup_series = date_range.map { |d| signups_by_day[d] || 0 }
-
-    category_counts = Product.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
-                             .group("DATE(created_at)", :category)
-                             .count
-
-    top_categories = Product.group(:category)
-                           .order(Arel.sql("COUNT(*) DESC"))
-                           .limit(5)
-                           .count
-                           .keys
-
-    @category_labels = @signup_labels
-    @category_series = top_categories.index_with do |category|
-      date_range.map { |d| category_counts[[ d, category ]] || 0 }
-    end
-
-    if PageView.table_exists?
-      pageview_counts = PageView.where(viewed_on: date_range)
-                               .group(:path)
-                               .sum(:count)
-
-      top_paths = pageview_counts.sort_by { |_, count| -count }.first(5).map(&:first)
-
-      pageviews_by_day = PageView.where(viewed_on: date_range, path: top_paths)
-                                .group(:viewed_on, :path)
-                                .sum(:count)
-
-      @pageview_labels = @signup_labels
-      @pageview_series = top_paths.index_with do |path|
-        date_range.map { |d| pageviews_by_day[[ d, path ]] || 0 }
-      end
-    else
-      @pageview_labels = @signup_labels
-      @pageview_series = {}
-    end
+  def charts
+    chart_data = build_chart_data
+    render json: chart_data
   end
 
   # Keep the separate action if you want a dedicated page
@@ -93,6 +63,61 @@ class Admin::DashboardController < ApplicationController
   end
 
   private
+
+  def build_chart_data
+    date_range = (29.days.ago.to_date..Date.current).to_a
+
+    signups_by_day = User.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
+                          .group("DATE(created_at)")
+                          .count
+
+    signup_labels = date_range.map { |d| d.strftime("%b %d") }
+    signup_series = date_range.map { |d| signups_by_day[d] || 0 }
+
+    category_counts = Product.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
+                             .group("DATE(created_at)", :category)
+                             .count
+
+    top_categories = Product.group(:category)
+                           .order(Arel.sql("COUNT(*) DESC"))
+                           .limit(5)
+                           .count
+                           .keys
+
+    category_labels = signup_labels
+    category_series = top_categories.index_with do |category|
+      date_range.map { |d| category_counts[[ d, category ]] || 0 }
+    end
+
+    if PageView.table_exists?
+      pageview_counts = PageView.where(viewed_on: date_range)
+                               .group(:path)
+                               .sum(:count)
+
+      top_paths = pageview_counts.sort_by { |_, count| -count }.first(5).map(&:first)
+
+      pageviews_by_day = PageView.where(viewed_on: date_range, path: top_paths)
+                                .group(:viewed_on, :path)
+                                .sum(:count)
+
+      pageview_labels = signup_labels
+      pageview_series = top_paths.index_with do |path|
+        date_range.map { |d| pageviews_by_day[[ d, path ]] || 0 }
+      end
+    else
+      pageview_labels = signup_labels
+      pageview_series = {}
+    end
+
+    {
+      signup_labels: signup_labels,
+      signup_series: signup_series,
+      category_labels: category_labels,
+      category_series: category_series,
+      pageview_labels: pageview_labels,
+      pageview_series: pageview_series
+    }
+  end
 
 
     def calculate_platform_health
