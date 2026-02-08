@@ -38,7 +38,7 @@
         <div class="flex flex-wrap gap-3">
             <%= link_to 'Users', admin_users_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
             <%= link_to 'Products', admin_products_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
-            <%= link_to 'Orders', admin_orders_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
+            <%= link_to 'Quotation Requests', admin_quotation_requests_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
             <%= link_to 'Reviews', admin_reviews_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
             <%= link_to 'Support', support_dashboard_path, class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto text-center" %>
         </div>
@@ -57,9 +57,9 @@
             <p class="text-xs text-gray-500 mt-1"><%= @in_stock_count %> in stock • <%= @out_of_stock_count %> out</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-sm">
-            <h3 class="text-sm font-semibold text-gray-500">Orders</h3>
-            <p class="text-3xl font-bold text-gray-900"><%= @orders_count %></p>
-            <p class="text-xs text-gray-500 mt-1">Orders recorded (no payments)</p>
+            <h3 class="text-sm font-semibold text-gray-500">Quotation Requests</h3>
+            <p class="text-3xl font-bold text-gray-900"><%= @quotation_requests_count %></p>
+            <p class="text-xs text-gray-500 mt-1">Requests recorded (no payments)</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-sm">
             <h3 class="text-sm font-semibold text-gray-500">Verification Rate</h3>

@@ -9,7 +9,7 @@ class Admin::DashboardController < ApplicationController
     @products_count = Product.count
     @in_stock_count = Product.where("stock_quantity > 0").count
     @out_of_stock_count = Product.where("stock_quantity <= 0").count
-    @orders_count = Order.count
+    @quotation_requests_count = QuotationRequest.count
     @reviews_count = Review.count
     @support_messages_count = SupportMessage.count
     @recent_quotation_requests = QuotationRequest.includes(:user).order(created_at: :desc).limit(5)

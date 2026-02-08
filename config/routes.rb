@@ -45,6 +45,8 @@ Rails.application.routes.draw do
   # User routes
   resources :users, only: [ :show, :edit, :index, :update ]
 
+  resources :quotation_requests, only: [ :index, :show ]
+
   # Profile routes
   get "/profile", to: "users#profile"
   get "/my_products", to: "products#my_products"
@@ -67,7 +69,7 @@ Rails.application.routes.draw do
     get "dashboard/verification_stats", to: "dashboard#verification_stats" # Add this line
     resources :users, only: [ :index, :new, :show, :create, :edit, :update, :destroy ]
     resources :products, only: [ :index, :show, :new, :create, :edit, :update, :destroy ]
-    resources :orders, only: [ :index, :show, :update ]
+    resources :quotation_requests, only: [ :index, :show ]
     resources :reviews, only: [ :index, :show, :edit, :update, :destroy ]  # Review management
     resources :pages, only: [ :edit, :update ]
   end

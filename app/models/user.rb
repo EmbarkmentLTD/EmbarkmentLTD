@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :reviews, dependent: :destroy
   has_many :orders, dependent: :destroy
   has_many :order_items, through: :orders
+  has_many :quotation_requests, dependent: :destroy
 
 
  has_many :sent_messages, class_name: "SupportMessage",
