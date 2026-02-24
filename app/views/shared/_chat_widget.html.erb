@@ -4,7 +4,7 @@
 <!-- Show full chat widget (your existing code goes here) -->
 
 <!--------------------------------- Draggable Floating Quick Chat Widget ------------------->
-<div id="chat-widget" class="fixed bottom-6 right-6 z-50 cursor-move" style="touch-action: none;">
+<div id="chat-widget" class="fixed bottom-6 right-6 z-50 cursor-move" style="touch-action: manipulation;">
     <!-- Chat Toggle Button -->
     <button id="chat-toggle" class="bg-green-600 hover:bg-green-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 drag-handle relative">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,11 +198,16 @@
         transition: none;
     }
 
+    #chat-toggle {
+        touch-action: manipulation;
+    }
+
     .drag-handle {
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
+        touch-action: none;
     }
 
     /* Ensure chat box stays positioned relative to widget when dragged */

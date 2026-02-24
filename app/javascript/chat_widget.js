@@ -18,13 +18,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Draggable functionality - SIMPLIFIED VERSION
   let isDragging = false;
+  let dragPending = false;
   let startX, startY, initialX, initialY;
+  const dragThreshold = 6;
   
   // Make chat widget draggable
   function startDrag(e) {
     // Only drag if clicking on the button or header with drag-handle class
     if (e.target.closest('.drag-handle')) {
-      isDragging = true;
+      dragPending = true;
+      isDragging = false;
       
       // Get initial mouse/touch position
       if (e.type === 'touchstart') {
@@ -51,15 +54,15 @@ document.addEventListener('DOMContentLoaded', function() {
         initialY = 0;
       }
       
-      // Prevent default to avoid text selection
-      e.preventDefault();
+      // Prevent text selection on mouse; allow taps to register on touch
+      if (e.type === 'mousedown') {
+        e.preventDefault();
+      }
     }
   }
   
   function doDrag(e) {
-    if (!isDragging) return;
-    
-    e.preventDefault();
+    if (!dragPending) return;
     
     let currentX, currentY;
     if (e.type === 'touchmove') {
@@ -73,6 +76,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Calculate new position
     const deltaX = currentX - startX;
     const deltaY = currentY - startY;
+
+    if (!isDragging) {
+      if (Math.abs(deltaX) < dragThreshold && Math.abs(deltaY) < dragThreshold) {
+        return;
+      }
+      isDragging = true;
+    }
+
+    e.preventDefault();
+
     const newX = initialX + deltaX;
     const newY = initialY + deltaY;
     
@@ -88,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function stopDrag() {
     isDragging = false;
+    dragPending = false;
   }
   
   // Add event listeners for dragging
@@ -95,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
   chatWidget.addEventListener('touchstart', startDrag);
   
   document.addEventListener('mousemove', doDrag);
-  document.addEventListener('touchmove', doDrag);
+  document.addEventListener('touchmove', doDrag, { passive: false });
   
   document.addEventListener('mouseup', stopDrag);
   document.addEventListener('touchend', stopDrag);

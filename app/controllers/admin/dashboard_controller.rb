@@ -30,14 +30,40 @@ class Admin::DashboardController < ApplicationController
       @verified_users = User.where.not(email_verified_at: nil).count
       @unverified_users = User.where(email_verified_at: nil).count
       @verification_rate = @users_count > 0 ? (@verified_users.to_f / @users_count * 100).round(2) : 0
+      @verification_status = if @verification_rate >= 80
+                               "good"
+                             elsif @verification_rate >= 60
+                               "warn"
+                             else
+                               "bad"
+                             end
       @recent_unverified = User.where(email_verified_at: nil)
                             .where("created_at > ?", 7.days.ago)
                             .order(created_at: :desc)
                             .limit(10)
 
+    range_recent = 7.days.ago.beginning_of_day..Time.current.end_of_day
+    range_prev = 14.days.ago.beginning_of_day..7.days.ago.end_of_day
+
+    @users_last_7d = User.where(created_at: range_recent).count
+    @users_prev_7d = User.where(created_at: range_prev).count
+    @users_delta = @users_last_7d - @users_prev_7d
+
+    @products_last_7d = Product.where(created_at: range_recent).count
+    @products_prev_7d = Product.where(created_at: range_prev).count
+    @products_delta = @products_last_7d - @products_prev_7d
+
+    @quotation_last_7d = QuotationRequest.where(created_at: range_recent).count
+    @quotation_prev_7d = QuotationRequest.where(created_at: range_prev).count
+    @quotation_delta = @quotation_last_7d - @quotation_prev_7d
+
+    @in_stock_rate = @products_count > 0 ? ((@in_stock_count.to_f / @products_count) * 100).round(1) : 0
+    @buyer_supplier_ratio = @suppliers_count > 0 ? (@buyers_count.to_f / @suppliers_count).round(1) : @buyers_count
+
     chart_data = build_chart_data
     @signup_labels = chart_data[:signup_labels]
     @signup_series = chart_data[:signup_series]
+    @signup_series_by_role = chart_data[:signup_series_by_role]
     @category_labels = chart_data[:category_labels]
     @category_series = chart_data[:category_series]
     @pageview_labels = chart_data[:pageview_labels]
@@ -71,8 +97,26 @@ class Admin::DashboardController < ApplicationController
                           .group("DATE(created_at)")
                           .count
 
+    signups_by_day_role = User.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
+                              .group("DATE(created_at)", :role)
+                              .count
+
     signup_labels = date_range.map { |d| d.strftime("%b %d") }
     signup_series = date_range.map { |d| signups_by_day[d] || 0 }
+
+    role_keys = %w[buyer supplier admin]
+    signup_series_by_role = role_keys.index_with do |role|
+      date_range.map { |d| signups_by_day_role[[ d, role ]] || 0 }
+    end
+
+    other_by_day = Hash.new(0)
+    signups_by_day_role.each do |(date, role), count|
+      role_name = role.to_s
+      next if role_keys.include?(role_name)
+      other_by_day[date] += count
+    end
+
+    signup_series_by_role["Other"] = date_range.map { |d| other_by_day[d] || 0 }
 
     category_counts = Product.where(created_at: 29.days.ago.beginning_of_day..Time.current.end_of_day)
                              .group("DATE(created_at)", :category)
@@ -112,6 +156,7 @@ class Admin::DashboardController < ApplicationController
     {
       signup_labels: signup_labels,
       signup_series: signup_series,
+      signup_series_by_role: signup_series_by_role,
       category_labels: category_labels,
       category_series: category_series,
       pageview_labels: pageview_labels,
