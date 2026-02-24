@@ -69,22 +69,47 @@
     </div>
 
         <!-- Charts -->
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8" data-controller="admin-charts"
-                data-admin-charts-url="<%= admin_dashboard_charts_path(format: :json) %>">
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
         <div class="bg-white p-6 rounded-lg shadow-sm xl:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900">User Signups (30 days)</h2>
-                <span class="text-xs text-gray-500">Daily totals</span>
+                <span class="text-xs text-gray-500">Server-rendered</span>
             </div>
-            <canvas id="signupsChart" height="120"></canvas>
+            <% signup_max = [@signup_series&.max.to_i, 1].max %>
+            <div class="h-56 sm:h-64 lg:h-72 flex items-end gap-1 border-b border-l border-gray-200 px-2 pb-2">
+                <% (@signup_series || []).each do |value| %>
+                    <% bar_height = ((value.to_f / signup_max) * 100).round %>
+                    <div class="flex-1 bg-green-500/70 rounded-t" style="height: <%= [bar_height, 2].max %>%"></div>
+                <% end %>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Max daily signups: <%= signup_max %></p>
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900">Product Categories (30 days)</h2>
-                <span class="text-xs text-gray-500">Daily totals</span>
+                <span class="text-xs text-gray-500">Server-rendered</span>
             </div>
-            <canvas id="categoriesChart" height="180"></canvas>
+            <% category_totals = (@category_series || {}).transform_values { |series| Array(series).sum } %>
+            <% category_max = [category_totals.values.max.to_i, 1].max %>
+            <div class="space-y-3 h-56 sm:h-64 lg:h-72 overflow-y-auto pr-1">
+                <% if category_totals.any? %>
+                    <% category_totals.each do |category, total| %>
+                        <% width_pct = ((total.to_f / category_max) * 100).round %>
+                        <div>
+                            <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                <span><%= category.presence || "Uncategorized" %></span>
+                                <span><%= total %></span>
+                            </div>
+                            <div class="w-full h-2 bg-gray-100 rounded">
+                                <div class="h-2 bg-green-600 rounded" style="width: <%= [width_pct, 2].max %>%"></div>
+                            </div>
+                        </div>
+                    <% end %>
+                <% else %>
+                    <p class="text-sm text-gray-500">No category activity in the last 30 days.</p>
+                <% end %>
+            </div>
         </div>
     </div>
 
@@ -92,9 +117,28 @@
         <div class="bg-white p-6 rounded-lg shadow-sm xl:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900">Most Visited Pages (30 days)</h2>
-                <span class="text-xs text-gray-500">Daily totals</span>
+                <span class="text-xs text-gray-500">Server-rendered</span>
             </div>
-            <canvas id="pageViewsChart" height="120"></canvas>
+            <% page_totals = (@pageview_series || {}).transform_values { |series| Array(series).sum } %>
+            <% page_max = [page_totals.values.max.to_i, 1].max %>
+            <div class="space-y-3 h-56 sm:h-64 lg:h-72 overflow-y-auto pr-1">
+                <% if page_totals.any? %>
+                    <% page_totals.each do |path, total| %>
+                        <% width_pct = ((total.to_f / page_max) * 100).round %>
+                        <div>
+                            <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                <span class="truncate max-w-[80%]"><%= path %></span>
+                                <span><%= total %></span>
+                            </div>
+                            <div class="w-full h-2 bg-gray-100 rounded">
+                                <div class="h-2 bg-blue-600 rounded" style="width: <%= [width_pct, 2].max %>%"></div>
+                            </div>
+                        </div>
+                    <% end %>
+                <% else %>
+                    <p class="text-sm text-gray-500">No page view data in the last 30 days.</p>
+                <% end %>
+            </div>
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow-sm">
