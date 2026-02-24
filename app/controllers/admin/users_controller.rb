@@ -4,7 +4,11 @@ class Admin::UsersController < ApplicationController
   before_action :set_user, only: [ :edit, :update, :destroy, :show ]
 
   def index
-    @users = User.all.order(created_at: :desc).page(params[:page]).per(20)
+    @users = User.left_joins(:products)
+                 .select("users.*, MAX(products.created_at) AS last_product_created_at")
+                 .group("users.id")
+                 .order("users.created_at DESC")
+                 .page(params[:page]).per(20)
   end
 
   def edit
