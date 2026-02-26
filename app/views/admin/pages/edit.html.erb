@@ -13,7 +13,7 @@
         <div class="bg-white rounded-xl shadow-sm p-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-6">Edit <%= @page.title %></h1>
 
-            <%= form_with model: [:admin, @page], local: true, id: 'page-form' do |form| %>
+            <%= form_with model: [:admin, @page], local: true, id: 'page-form', data: { turbo: false } do |form| %>
             <div class="mb-6">
                 <%= form.label :title, class: 'block text-sm font-medium text-gray-700 mb-2' %>
                 <%= form.text_field :title, 
@@ -23,7 +23,7 @@
             <div class="mb-6">
                 <%= form.label :content, class: 'block text-sm font-medium text-gray-700 mb-2' %>
                 <div id="quill-editor"><%= raw @page.content %></div>
-                <%= form.hidden_field :content, id: 'page_content_hidden' %>
+                <%= form.hidden_field :content, id: 'page_content_hidden', value: @page.content %>
                 <p class="text-sm text-gray-500 mt-2">
                     Use the toolbar above to format your content.
                 </p>
@@ -59,10 +59,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Sync Quill content to hidden field before form submit
+    // Sync Quill content to hidden field on every change
+    var hiddenField = document.getElementById('page_content_hidden');
+    quill.on('text-change', function() {
+        hiddenField.value = quill.root.innerHTML;
+    });
+
+    // Also sync before form submit (backup)
     var form = document.getElementById('page-form');
     form.addEventListener('submit', function(e) {
-        var hiddenField = document.getElementById('page_content_hidden');
         hiddenField.value = quill.root.innerHTML;
     });
 });
