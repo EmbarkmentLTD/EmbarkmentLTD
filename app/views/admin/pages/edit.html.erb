@@ -1,10 +1,19 @@
 <%= content_for :head do %>
-  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
   <style>
-    .ql-editor { min-height: 400px; font-size: 16px; }
-    .ql-toolbar.ql-snow { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
-    .ql-container.ql-snow { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
+    #html-editor {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      tab-size: 2;
+    }
+    #preview-container {
+      min-height: 400px;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      background: white;
+      overflow: auto;
+    }
   </style>
 <% end %>
 
@@ -21,11 +30,31 @@
             </div>
 
             <div class="mb-6">
-                <%= form.label :content, class: 'block text-sm font-medium text-gray-700 mb-2' %>
-                <div id="quill-editor"><%= raw @page.content %></div>
-                <%= form.hidden_field :content, id: 'page_content_hidden', value: @page.content %>
+                <div class="flex items-center justify-between mb-2">
+                    <%= form.label :content, class: 'block text-sm font-medium text-gray-700' %>
+                    <div class="flex space-x-2">
+                        <button type="button" id="html-mode-btn" class="px-3 py-1 text-sm rounded-md bg-green-600 text-white">
+                            HTML Code
+                        </button>
+                        <button type="button" id="preview-mode-btn" class="px-3 py-1 text-sm rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300">
+                            Preview
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- HTML Editor Mode -->
+                <div id="html-editor-container">
+                    <%= form.text_area :content, rows: 25, id: 'html-editor',
+                    class: 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500' %>
+                </div>
+                
+                <!-- Preview Mode (hidden by default) -->
+                <div id="preview-container" class="hidden">
+                </div>
+                
                 <p class="text-sm text-gray-500 mt-2">
-                    Use the toolbar above to format your content.
+                    <strong>HTML Code mode:</strong> Edit raw HTML with Tailwind CSS classes preserved.
+                    <strong>Preview:</strong> See how the page will look.
                 </p>
             </div>
 
@@ -42,33 +71,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var quill = new Quill('#quill-editor', {
-        theme: 'snow',
-        modules: {
-            toolbar: [
-                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'align': [] }],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'indent': '-1'}, { 'indent': '+1' }],
-                ['link', 'image'],
-                ['blockquote', 'code-block'],
-                ['clean']
-            ]
+    var htmlEditor = document.getElementById('html-editor');
+    var htmlEditorContainer = document.getElementById('html-editor-container');
+    var previewContainer = document.getElementById('preview-container');
+    var htmlModeBtn = document.getElementById('html-mode-btn');
+    var previewModeBtn = document.getElementById('preview-mode-btn');
+
+    // Switch to HTML mode
+    htmlModeBtn.addEventListener('click', function() {
+        htmlEditorContainer.classList.remove('hidden');
+        previewContainer.classList.add('hidden');
+        htmlModeBtn.classList.remove('bg-gray-200', 'text-gray-700');
+        htmlModeBtn.classList.add('bg-green-600', 'text-white');
+        previewModeBtn.classList.remove('bg-green-600', 'text-white');
+        previewModeBtn.classList.add('bg-gray-200', 'text-gray-700');
+    });
+
+    // Switch to Preview mode
+    previewModeBtn.addEventListener('click', function() {
+        htmlEditorContainer.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        previewContainer.innerHTML = htmlEditor.value;
+        previewModeBtn.classList.remove('bg-gray-200', 'text-gray-700');
+        previewModeBtn.classList.add('bg-green-600', 'text-white');
+        htmlModeBtn.classList.remove('bg-green-600', 'text-white');
+        htmlModeBtn.classList.add('bg-gray-200', 'text-gray-700');
+        
+        // Re-initialize Lucide icons in preview
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
-    });
-
-    // Sync Quill content to hidden field on every change
-    var hiddenField = document.getElementById('page_content_hidden');
-    quill.on('text-change', function() {
-        hiddenField.value = quill.root.innerHTML;
-    });
-
-    // Also sync before form submit (backup)
-    var form = document.getElementById('page-form');
-    form.addEventListener('submit', function(e) {
-        hiddenField.value = quill.root.innerHTML;
     });
 });
 </script>
