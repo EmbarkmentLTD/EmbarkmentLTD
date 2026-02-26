@@ -1,46 +1,56 @@
 
-# Clear existing data
+# Clear existing data (order matters for foreign keys)
+QuotationItem.destroy_all if defined?(QuotationItem)
+Quotation.destroy_all if defined?(Quotation)
+QuotationRequest.destroy_all if defined?(QuotationRequest)
+OrderItem.destroy_all if defined?(OrderItem)
+Order.destroy_all
 Product.destroy_all
 User.destroy_all
-Order.destroy_all
 Page.destroy_all
 
+# Skip email callbacks during seeding
+User.skip_callback(:commit, :after, :send_initial_emails)
 
-
-# Create admin user
-admin = User.create!(
+# Create admin user (auto-activated, skip email validation for seeds)
+admin = User.new(
   name: 'Admin User',
   email: 'admin@embarkmentltd.com',
   password: 'admin123',
   location: 'Springfield, IL',
-  role: 'admin'
+  role: 'admin',
+  email_verified_at: Time.current
 )
+admin.save!(validate: false)
 
 # Create sample suppliers
-supplier1 = User.create!(
+supplier1 = User.new(
   name: 'John Supplier',
   email: 'supplier1@example.com',
   password: 'test123',
   location: 'Springfield, IL',
   role: 'supplier'
 )
+supplier1.save!(validate: false)
 
-supplier2 = User.create!(
+supplier2 = User.new(
   name: 'Sarah Grower',
   email: 'supplier2@example.com',
   password: 'test123',
   location: 'Shelbyville, IL',
   role: 'supplier'
 )
+supplier2.save!(validate: false)
 
 # Create sample customer
-customer = User.create!(
+customer = User.new(
   name: 'Mike Customer',
   email: 'buyer1@example.com',
   password: 'buyer123',
   location: 'Springfield, IL',
   role: 'buyer'
 )
+customer.save!(validate: false)
 
 # Create sample products
 products = [
