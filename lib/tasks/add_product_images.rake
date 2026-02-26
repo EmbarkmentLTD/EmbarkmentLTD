@@ -25,27 +25,28 @@ namespace :products do
       words.last&.downcase&.gsub(/[^a-z]/, '') || 'food'
     end
 
-    # Get Unsplash URL for keyword (uses source.unsplash.com which redirects to relevant images)
-    def unsplash_url(keyword, category)
+    # Get LoremFlickr URL for keyword (better rate limits than Unsplash source)
+    def food_image_url(keyword, category)
       # Clean keyword for URL
-      search_term = keyword.gsub(/[^a-z0-9\s]/i, '').strip.gsub(/\s+/, '-')
+      search_term = keyword.gsub(/[^a-z0-9\s]/i, '').strip.gsub(/\s+/, ',')
       
+      # LoremFlickr supports keyword-based images
       # Add category context for better results
-      category_context = {
+      category_terms = {
         'fruits' => 'fruit',
-        'vegetables' => 'vegetable',
-        'grains' => 'grain-food',
-        'herbs' => 'spice-herb',
-        'nuts' => 'nuts',
-        'dairy' => 'dairy-cheese',
-        'meat' => 'meat-food',
-        'other' => 'food'
+        'vegetables' => 'vegetable,greens',
+        'grains' => 'rice,grain,wheat',
+        'herbs' => 'spices,herbs',
+        'nuts' => 'nuts,seeds',
+        'dairy' => 'cheese,dairy,milk',
+        'meat' => 'meat,beef,chicken',
+        'other' => 'food,cooking'
       }
       
-      context = category_context[category] || 'food'
+      context = category_terms[category] || 'food'
       
-      # Unsplash source API with keyword
-      "https://source.unsplash.com/400x400/?#{search_term},#{context}"
+      # Use loremflickr.com for keyword-based images
+      "https://loremflickr.com/400/400/#{search_term},#{context}/all?random=#{rand(10000)}"
     end
 
     # Fallback: Use Picsum for random placeholder images  
@@ -70,7 +71,7 @@ namespace :products do
       begin
         # Extract keyword from product name for relevant image search
         keyword = extract_keyword(product.name)
-        image_url = unsplash_url(keyword, product.category)
+        image_url = food_image_url(keyword, product.category)
         
         puts "\n  #{product.name} -> searching: #{keyword}" if (index + 1) % 25 == 0
         
@@ -173,7 +174,7 @@ namespace :products do
       words.last&.downcase&.gsub(/[^a-z]/, '') || 'food'
     end
 
-    def unsplash_url(keyword, category)
+    def food_image_url(keyword, category)
       search_term = keyword.gsub(/[^a-z0-9\s]/i, '').strip.gsub(/\s+/, '-')
       category_context = {
         'fruits' => 'fruit',
@@ -209,7 +210,7 @@ namespace :products do
         
         # Extract keyword from product name
         keyword = extract_keyword(product.name)
-        image_url = unsplash_url(keyword, product.category)
+        image_url = food_image_url(keyword, product.category)
         
         # Download new image
         downloaded_image = URI.open(image_url, 
