@@ -17,8 +17,8 @@ class Admin::PagesController < ApplicationController
   private
 
   def set_page
-    # Find by slug or create it if it doesn't exist
-    @page = Page.find_by(slug: params[:id])
+    # Try to find by slug first, then by ID
+    @page = Page.find_by(slug: params[:id]) || Page.find_by(id: params[:id])
 
     # If page doesn't exist, create it with default content
     unless @page
