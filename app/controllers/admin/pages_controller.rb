@@ -25,7 +25,7 @@ class Admin::PagesController < ApplicationController
       @page = Page.create!(
         slug: params[:id],
         title: params[:id].humanize.titleize,
-        content: default_page_content(params[:id])
+        content: default_content(params[:id])
       )
     end
   end
