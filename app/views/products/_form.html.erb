@@ -154,6 +154,7 @@
         <h4 class="text-sm font-medium text-gray-700 mb-2">Current Images</h4>
         <div class="grid grid-cols-4 gap-2">
                         <% @product.images.each do |image| %>
+                        <% next unless image.persisted? && image.blob&.persisted? %>
                         <div class="relative group">
                                 <%= image_tag image, class: "aspect-square object-cover rounded-md border border-gray-200" %>
                                 <% if image.persisted? && image.blob&.persisted? %>
