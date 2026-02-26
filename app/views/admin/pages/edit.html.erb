@@ -1,5 +1,9 @@
+<%= content_for :head do %>
+  <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<% end %>
+
 <div class="min-h-screen bg-gray-50 py-12">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-xl shadow-sm p-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-6">Edit <%= @page.title %></h1>
 
@@ -12,10 +16,10 @@
 
             <div class="mb-6">
                 <%= form.label :content, class: 'block text-sm font-medium text-gray-700 mb-2' %>
-                <%= form.text_area :content, rows: 20, 
-                class: 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm' %>
+                <%= form.text_area :content, rows: 20, id: 'page_content_editor',
+                class: 'w-full px-4 py-3 border border-gray-300 rounded-lg' %>
                 <p class="text-sm text-gray-500 mt-2">
-                    You can use HTML and TailwindCSS classes for formatting. For icons, use:
+                    Use the toolbar above to format your content. For icons, use:
                     <code class="bg-gray-100 px-1 rounded">&lt;i data-lucide="icon-name" class="h-5 w-5"&gt;&lt;/i&gt;</code>
                 </p>
             </div>
@@ -30,3 +34,29 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+        selector: '#page_content_editor',
+        height: 500,
+        menubar: true,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic underline strikethrough | forecolor backcolor | ' +
+            'alignleft aligncenter alignright alignjustify | ' +
+            'bullist numlist outdent indent | ' +
+            'link image table | code | removeformat | help',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; }',
+        valid_elements: '*[*]',
+        extended_valid_elements: 'i[class|data-lucide],span[class],div[class],svg[*],path[*]',
+        valid_children: '+body[style]',
+        promotion: false,
+        branding: false
+    });
+});
+</script>
