@@ -28,6 +28,13 @@
 #       enabled: "ON"
 
 en:
+  views:
+    pagination:
+      first: "«"
+      last: "»"
+      previous: "‹"
+      next: "›"
+      truncate: "…"
   activerecord:
     errors:
       models:
