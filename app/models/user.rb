@@ -3,7 +3,7 @@ require "timeout"
 
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable, :trackable
+         :recoverable, :rememberable, :validatable, :trackable, :timeoutable
 
   has_many :products, dependent: :destroy
   has_many :reviews, dependent: :destroy
