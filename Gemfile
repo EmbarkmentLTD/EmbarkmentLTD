@@ -33,7 +33,7 @@ gem "pundit", "~> 2.3"
 gem "image_processing", "~> 1.2"
 gem "kaminari", "~> 1.2"
 gem "rack-cors"
-gem "tailwindcss-rails", "~> 2.3"
+gem "tailwindcss-rails", "~> 4.4"
 gem "whenever", require: false
 gem "mail"
 # Add this instead
