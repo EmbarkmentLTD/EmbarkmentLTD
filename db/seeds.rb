@@ -12,6 +12,63 @@ Page.destroy_all
 # Skip email callbacks during seeding
 User.skip_callback(:commit, :after, :send_initial_emails)
 
+# Product-specific image URLs (matched to product names)
+SEED_PRODUCT_IMAGES = {
+  'honey crisp apple' => 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&h=400&fit=crop',
+  'apple' => 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&h=400&fit=crop',
+  'heirloom tomato' => 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&h=400&fit=crop',
+  'tomato' => 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&h=400&fit=crop',
+  'basil' => 'https://images.unsplash.com/photo-1618375569909-3c8616cf7733?w=400&h=400&fit=crop',
+  'carrot' => 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop',
+  'bell pepper' => 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop',
+  'pepper' => 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop'
+}.freeze
+
+# Helper to attach image to product
+def attach_seed_image(product)
+  require 'open-uri'
+  require 'tempfile'
+  
+  name_lower = product.name.downcase
+  
+  # Find matching image URL
+  image_url = nil
+  SEED_PRODUCT_IMAGES.keys.sort_by { |k| -k.length }.each do |keyword|
+    if name_lower.include?(keyword)
+      image_url = SEED_PRODUCT_IMAGES[keyword]
+      break
+    end
+  end
+  
+  return unless image_url
+  
+  begin
+    downloaded_image = URI.open(image_url, 
+      "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      read_timeout: 15,
+      open_timeout: 15
+    )
+    
+    temp_file = Tempfile.new(['product_image', '.jpg'])
+    temp_file.binmode
+    temp_file.write(downloaded_image.read)
+    temp_file.rewind
+    
+    product.images.attach(
+      io: temp_file,
+      filename: "#{product.name.parameterize}-#{SecureRandom.hex(4)}.jpg",
+      content_type: 'image/jpeg'
+    )
+    
+    temp_file.close
+    temp_file.unlink
+    
+    puts "  -> Attached matching image for '#{product.name}'"
+  rescue => e
+    puts "  -> Warning: Could not attach image for '#{product.name}': #{e.message}"
+  end
+end
+
 # Create admin user (auto-activated, skip email validation for seeds)
 admin = User.new(
   name: 'Admin User',
@@ -125,6 +182,7 @@ products.each do |product_attrs|
   product = Product.new(product_attrs)
   product.save(validate: false)  # Skip validation
   puts "Created product: #{product.name}"
+  attach_seed_image(product)
 end
 
 # Create sample reviews
