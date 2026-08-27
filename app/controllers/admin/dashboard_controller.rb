@@ -32,11 +32,11 @@ class Admin::DashboardController < ApplicationController
       @verification_rate = @users_count > 0 ? (@verified_users.to_f / @users_count * 100).round(2) : 0
       @verification_status = if @verification_rate >= 80
                                "good"
-                             elsif @verification_rate >= 60
+      elsif @verification_rate >= 60
                                "warn"
-                             else
+      else
                                "bad"
-                             end
+      end
       @recent_unverified = User.where(email_verified_at: nil)
                             .where("created_at > ?", 7.days.ago)
                             .order(created_at: :desc)

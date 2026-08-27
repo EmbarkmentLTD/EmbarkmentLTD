@@ -43,7 +43,7 @@ Rails.application.routes.draw do
   delete "quotations/remove_quotation_item/:product_id", to: "quotations#remove_quotation_item", as: "remove_quotation_item"
 
   # User routes
-  resources :users, only: [ :show, :edit, :index, :update ]
+  resources :users, only: [ :show, :edit, :update ]
 
   resources :quotation_requests, only: [ :index, :show ]
 

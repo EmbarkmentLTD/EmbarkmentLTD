@@ -23,10 +23,6 @@ class QuotationsController < ApplicationController
     return
   end
 
-    # Debug: Check what we're receiving
-    Rails.logger.info "Quotation params: #{quotation_params.inspect}"
-    Rails.logger.info "Quotation items: #{@quotation_items.inspect}"
-
   # Rest of your submission logic
   quotation_data = {
     user: current_user,
@@ -51,9 +47,8 @@ class QuotationsController < ApplicationController
       quotation_request.quotation_items.create!(product: product, quantity: quantity)
     end
 
-    # In production, you would send an email here
-    # QuotationMailer.quotation_request(quotation_data).deliver_later
-    Rails.logger.info "Quotation request received: #{quotation_data}"
+    # In production, send the quotation email to the team
+    Rails.logger.info "Quotation request #{quotation_request.id} received from user #{current_user.id}"
 
     first_item = @quotation_items.first
     if first_item

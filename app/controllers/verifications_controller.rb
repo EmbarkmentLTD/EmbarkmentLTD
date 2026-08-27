@@ -1,4 +1,7 @@
 class VerificationsController < ApplicationController
+  include RateLimitable
+  rate_limit max: 10, within: 1.hour
+  before_action :enforce_rate_limit, only: :resend
   before_action :authenticate_user!
   before_action :redirect_if_verified, except: [ :show ]
 
@@ -28,19 +31,18 @@ class VerificationsController < ApplicationController
   end
 
   def resend
-    # if current_user.can_resend_verification?
-    #   current_user.send_verification_code
-    #   flash[:notice] = "New verification code sent to your email!"
-    # else
-    #   flash[:alert] = "Please wait before requesting a new code."
-    # end
+    unless current_user.can_resend_verification?
+      flash[:alert] = "Please wait before requesting a new code."
+      redirect_to verification_path
+      return
+    end
 
-    # redirect_to verification_path
-
-    current_user.send_verification_code
-  # Show code on screen instead of email
-  flash[:notice] = "Verification code: #{current_user.email_verification_code}"
-  redirect_to verification_path
+    if current_user.send_verification_code
+      flash[:notice] = "A new verification code has been sent to your email."
+    else
+      flash[:alert] = "Unable to send verification code right now. Please try again shortly."
+    end
+    redirect_to verification_path
   end
 
   private

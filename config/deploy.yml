@@ -19,7 +19,7 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: true
-  host: app.example.com
+  host: www.embarkment.co.uk
 
 # Credentials for your image host.
 # registry:
@@ -38,6 +38,7 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - RESEND_API_KEY
     - POSTGRES_DB
     - POSTGRES_USER
     - POSTGRES_PASSWORD

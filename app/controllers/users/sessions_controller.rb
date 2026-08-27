@@ -1,18 +1,7 @@
 class Users::SessionsController < Devise::SessionsController
-  # GET /resource/sign_in
-  # def new
-  #   super
-  # end
-
-  # POST /resource/sign_in
-  # def create
-  #   super
-  # end
-
-  # DELETE /resource/sign_out
-  # def destroy
-  #   super
-  # end
+  include RateLimitable
+  rate_limit max: 20, within: 30.minutes
+  before_action :enforce_rate_limit, only: :create
 
   protected
 

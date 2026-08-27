@@ -1,6 +1,8 @@
 # app/controllers/support_chat_messages_controller.rb
 class SupportChatMessagesController < ApplicationController
-  skip_before_action :verify_authenticity_token
+  include RateLimitable
+  rate_limit max: 10, within: 1.hour
+  before_action :enforce_rate_limit
 
   def create
     if user_signed_in?

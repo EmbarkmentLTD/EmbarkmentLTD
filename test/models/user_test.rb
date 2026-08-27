@@ -5,12 +5,13 @@ class UserTest < ActiveSupport::TestCase
   test "should send verification code on create" do
     user = User.new(
       name: "Test User",
-      email: "test@example.com",
+      email: "test.user@gmail.com",
       password: "password123",
       location: "Test Location"
     )
 
-    assert_enqueued_jobs 2 do  # Welcome email + verification email
+    # Welcome email is production-only, so only the verification email is enqueued in test env
+    assert_enqueued_jobs 1 do
       user.save!
     end
   end

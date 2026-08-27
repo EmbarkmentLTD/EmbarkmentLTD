@@ -1,6 +1,3 @@
-require "resolv"
-require "timeout"
-
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, :trackable, :timeoutable
@@ -24,6 +21,8 @@ class User < ApplicationRecord
 
   before_create :generate_serial_number
 
+  ROLES = [ "buyer", "supplier", "admin", "support" ].freeze
+
   # Keep Devise validations but add extra validation
   validates :email,
     'valid_email_2/email': {
@@ -31,17 +30,14 @@ class User < ApplicationRecord
       mx: true,         # Require valid MX records
       disallow_subaddressing: false  # Allow plus addressing (user+tag@gmail.com)
     }
-  validate :email_domain_has_mx, if: :will_save_change_to_email?
-
   validates :name, presence: true
   validates :location, presence: true
+  validates :role, inclusion: { in: ROLES }
   validates :email_verification_code, length: { is: 6 }, allow_nil: true
 
   after_initialize :set_defaults
 
   has_one_attached :avatar
-
-  ROLES = [ "buyer", "supplier", "admin", "support" ].freeze
 
   # Add this scope for the product owner dropdown
   scope :suppliers, -> { where(role: [ "supplier", "admin" ]) }
@@ -177,20 +173,20 @@ class User < ApplicationRecord
     return false unless can_resend_verification?
 
     # Generate 6-digit code
-    self.email_verification_code = rand(100000..999999).to_s
+    self.email_verification_code = SecureRandom.random_number(100000..999999).to_s
     self.email_verification_sent_at = Time.current
     self.verification_attempts = 0
     save!
 
     # Send verification email
-    UserMailer.verification_email(self).deliver_now
+    UserMailer.verification_email(self).deliver_later
 
     true
   end
 
   def send_welcome_email
     return unless Rails.env.production?
-    UserMailer.welcome_email(self).deliver_now
+    UserMailer.welcome_email(self).deliver_later
   end
 
   def send_verification_reminder
@@ -199,7 +195,7 @@ class User < ApplicationRecord
     self.last_verification_reminder_at = Time.current
     save!
 
-    UserMailer.verification_reminder(self).deliver_now
+    UserMailer.verification_reminder(self).deliver_later
     true
   end
 
@@ -267,45 +263,6 @@ class User < ApplicationRecord
   end
 
   private
-
-  def email_domain_has_mx
-    return if email.blank?
-
-    domain = email.to_s.split("@").last
-    return if domain.blank?
-
-    unless domain.match?(/\A[a-z0-9.-]+\.[a-z]{2,}\z/i)
-      errors.add(:email, "domain is invalid. Please use a real email address.")
-      return
-    end
-
-    mx_records = []
-    a_records = []
-    aaaa_records = []
-
-    begin
-      Timeout.timeout(3) do
-        Resolv::DNS.open do |dns|
-          mx_records = dns.getresources(domain, Resolv::DNS::Resource::IN::MX)
-          a_records = dns.getresources(domain, Resolv::DNS::Resource::IN::A)
-          aaaa_records = dns.getresources(domain, Resolv::DNS::Resource::IN::AAAA)
-        end
-      end
-    rescue StandardError, Timeout::Error
-      mx_records = []
-      a_records = []
-      aaaa_records = []
-    end
-
-    if mx_records.blank?
-      errors.add(:email, "domain is not reachable. Please use a real email address.")
-      return
-    end
-
-    if a_records.blank? && aaaa_records.blank?
-      errors.add(:email, "domain has no DNS records. Please use a real email address.")
-    end
-  end
 
   def set_defaults
     self.role ||= "buyer"

@@ -1,6 +1,17 @@
 class Users::RegistrationsController < Devise::RegistrationsController
+  include RateLimitable
+  rate_limit max: 10, within: 1.hour
+  before_action :enforce_rate_limit, only: :create
   before_action :configure_sign_up_params, only: [ :create ]
   before_action :configure_account_update_params, only: [ :update ]
+
+  # Only "buyer" and "supplier" can be self-selected at signup.
+  # "admin" / "support" are assigned exclusively by admins (see Admin::UsersController).
+  def sign_up_params
+    params = devise_parameter_sanitizer.sanitize(:sign_up)
+    params[:role] = "buyer" unless %w[buyer supplier].include?(params[:role])
+    params
+  end
 
   def create
     build_resource(sign_up_params)
@@ -49,7 +60,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   def configure_account_update_params
-    devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :location, :avatar, :role ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :location, :avatar ])
   end
 
   def after_update_path_for(resource)

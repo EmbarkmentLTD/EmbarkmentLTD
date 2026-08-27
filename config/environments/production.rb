@@ -6,7 +6,7 @@ Rails.application.configure do
 
   # config.require_master_key = false  # Temporarily disable for testing
 
-  config.require_master_key = false
+  config.require_master_key = true
 
   # config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'development_secret_key_placeholder_#{SecureRandom.hex(64)}'
   config.secret_key_base = ENV["SECRET_KEY_BASE"] || Rails.application.credentials.secret_key_base
@@ -37,7 +37,7 @@ Rails.application.configure do
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -71,49 +71,31 @@ Rails.application.configure do
   # EMAIL CONFIGURATION - GO DADDY SMTP
   # ====================================
 
-  # Enable email delivery
+  # EMAIL CONFIGURATION - RESEND
+  # ====================
+  # All email (verification codes, notifications, quotation responses) is
+  # delivered through Resend. Set RESEND_API_KEY in the environment
+  # (see .kamal/secrets for how it reaches the server).
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = false
 
-  # Use SMTP delivery (not sendgrid_actionmailer)
-  # config.action_mailer.delivery_method = :smtp
-
-  if ENV["SMTP_ENABLED"] == "true"
+  if ENV["RESEND_API_KEY"].present?
     config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: "smtp.resend.com",
+      port: 587,
+      user_name: "resend",
+      password: ENV["RESEND_API_KEY"],
+      authentication: :plain,
+      enable_starttls_auto: true,
+      open_timeout: 30,
+      read_timeout: 30
+    }
   else
+    # Never silently drop mail in production: fail loudly instead.
     config.action_mailer.delivery_method = :test
+    Rails.logger.warn "WARNING: RESEND_API_KEY is not set - email delivery is DISABLED"
   end
-
-  # GoDaddy SMTP Settings - Port 587 with STARTTLS
-  config.action_mailer.smtp_settings = {
-    # Server address
-    address: ENV.fetch("SMTP_ADDRESS", "smtpout.secureserver.net"),
-
-    # Port 587 for STARTTLS (recommended)
-    port: ENV.fetch("SMTP_PORT", 587).to_i,
-
-    # Your GoDaddy domain
-    domain: ENV.fetch("SMTP_DOMAIN", "embarkment.co.uk"),
-
-    # Your GoDaddy email credentials
-    user_name: ENV["SMTP_USERNAME"],
-    password: ENV["SMTP_PASSWORD"],
-
-    # Authentication type (GoDaddy uses PLAIN)
-    authentication: :plain,
-
-    # Enable STARTTLS for secure connection
-    enable_starttls_auto: ENV.fetch("SMTP_STARTTLS", "true") == "true",
-
-    # Timeout settings
-    open_timeout: 30,
-    read_timeout: 30,
-
-    # Optional: Disable SSL certificate verification if needed
-    # openssl_verify_mode: 'none'
-
-    openssl_verify_mode: ENV.fetch("SMTP_OPENSSL_VERIFY_MODE", "peer") == "none" ? OpenSSL::SSL::VERIFY_NONE : OpenSSL::SSL::VERIFY_PEER
-  }
 
   # Default email headers
   config.action_mailer.default_options = {
