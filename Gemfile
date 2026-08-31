@@ -28,7 +28,7 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 gem "image_processing", "~> 1.2"
 gem "kaminari", "~> 1.2"
 gem "rack-cors"
