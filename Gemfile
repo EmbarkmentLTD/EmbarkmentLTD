@@ -29,7 +29,7 @@ gem "solid_queue"
 gem "solid_cable"
 
 gem "devise", "~> 4.9"
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 gem "kaminari", "~> 1.2"
 gem "rack-cors"
 gem "tailwindcss-rails", "~> 2.3"
