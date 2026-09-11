@@ -35,10 +35,9 @@ drain_timeout: 30
   # server: registry.digitalocean.com / ghcr.io / ...
   # username: your-user
 registry:
-  username: <%= ENV["DOCKER_USERNAME"] %>
-  password: <%= ENV["DOCKER_PASSWORD"] %>
+  username: kvngjamesng
 
-  # Always use an access token rather than real password when possible.
+  # Use a Docker Hub access token stored in .kamal/secrets.
   password:
     - KAMAL_REGISTRY_PASSWORD
 
