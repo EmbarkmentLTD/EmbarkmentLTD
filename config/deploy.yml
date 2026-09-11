@@ -110,6 +110,7 @@ builder:
 accessories:
   postgres:
     image: postgres:16
+    host: 79.72.69.37
     env:
       clear:
         POSTGRES_DB: embarkmentltd_production
