@@ -4,6 +4,10 @@ service: embarkmentltd
 # Name of the container image.
 image: kvngjamesng/embarkmentltd
 
+# SSH configuration
+ssh:
+  user: ubuntu
+
 # Deploy to these servers.
 servers:
   web:
