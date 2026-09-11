@@ -8,6 +8,10 @@ default: &default
       processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
       polling_interval: 0.1
 
+  queues:
+    - name: default
+      concurrency: 1
+
 development:
   <<: *default
 
