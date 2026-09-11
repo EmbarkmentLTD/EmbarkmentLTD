@@ -68,4 +68,5 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start Rails directly on port 80 for Kamal health checks.
 EXPOSE 80
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 CMD curl -fsS http://127.0.0.1:80/up || exit 1
 CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "80"]
