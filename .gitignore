@@ -40,6 +40,9 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
+# Ignore local SQLite database files.
+/db/*.sqlite3
+
 /public/assets
 
 # Ignore master key for decrypting credentials and more.
