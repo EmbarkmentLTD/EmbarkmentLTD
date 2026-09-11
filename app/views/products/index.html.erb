@@ -174,7 +174,7 @@
                         <% if product.primary_image %>
                         <%= image_tag product.primary_image, 
                                             class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                                            onerror: "this.onerror=null;this.src='#{asset_path('product-placeholder.svg')}'" %>
+                                            onerror: "this.onerror=null;this.src='#{broken_image_fallback_url}'" %>
                         <% else %>
                         <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                             <span class="text-4xl"><%= product.category_icon %></span>

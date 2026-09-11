@@ -47,7 +47,7 @@
                 <% if @product.primary_image %>
                 <%= image_tag @product.primary_image, 
               class: "w-full h-full object-cover",
-                            onerror: "this.onerror=null;this.src='#{asset_path('product-placeholder.svg')}'",
+                            onerror: "this.onerror=null;this.src='#{broken_image_fallback_url}'",
               id: "main-image" %>
                 <% else %>
                 <div class="w-full h-full flex items-center justify-center text-6xl">
@@ -61,7 +61,7 @@
                 <% @product.images.each_with_index do |image, index| %>
                 <%= image_tag image, 
                 class: "aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity #{index == 0 ? 'ring-2 ring-green-600' : ''}",
-                onerror: "this.onerror=null;this.src='#{asset_path('product-placeholder.svg')}'",
+                onerror: "this.onerror=null;this.src='#{broken_image_fallback_url}'",
                 onclick: "changeMainImage(this, #{index})" %>
                 <% end %>
             </div>
@@ -466,7 +466,7 @@
                     <% if product.primary_image %>
                     <%= image_tag product.primary_image, 
                           class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                          onerror: "this.onerror=null;this.src='#{asset_path('product-placeholder.svg')}'" %>
+                          onerror: "this.onerror=null;this.src='#{broken_image_fallback_url}'" %>
                     <% else %>
                     <div class="w-full h-full flex items-center justify-center text-3xl">
                         <%= product.category_icon %>

@@ -37,7 +37,7 @@
                             <% if product.images.any? %>
                             <%= image_tag product.images.first,
                                 class: "h-10 w-10 rounded-full object-cover",
-                                onerror: "this.onerror=null;this.src='#{asset_path('product-placeholder.svg')}'" %>
+                                onerror: "this.onerror=null;this.src='#{broken_image_fallback_url}'" %>
                             <% end %>
                             <div class="ml-4">
                                 <div class="text-sm font-medium text-gray-900">
