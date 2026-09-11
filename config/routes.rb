@@ -28,6 +28,8 @@ Rails.application.routes.draw do
   get "contact-us", to: "home#contact_us"
   get "our-mission", to: "home#mission"
   get "about-us", to: "home#about_us"
+  get "privacy-policy", to: "home#privacy_policy", as: :privacy_policy
+  get "terms-and-conditions", to: "home#terms_and_conditions", as: :terms_and_conditions
 
   # Verification routes
   get "/verify", to: "verifications#show", as: "verification"

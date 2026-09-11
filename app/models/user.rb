@@ -2,6 +2,8 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, :trackable, :timeoutable
 
+  attr_accessor :terms_accepted
+
   has_many :products, dependent: :destroy
   has_many :reviews, dependent: :destroy
   has_many :orders, dependent: :destroy
@@ -34,6 +36,10 @@ class User < ApplicationRecord
   validates :location, presence: true
   validates :role, inclusion: { in: ROLES }
   validates :email_verification_code, length: { is: 6 }, allow_nil: true
+  validates :terms_accepted,
+    acceptance: { accept: "1", message: "must be accepted to create an account" },
+    on: :create,
+    if: :requires_terms_acceptance?
 
   after_initialize :set_defaults
 
@@ -263,6 +269,10 @@ class User < ApplicationRecord
   end
 
   private
+
+  def requires_terms_acceptance?
+    buyer? || supplier?
+  end
 
   def set_defaults
     self.role ||= "buyer"

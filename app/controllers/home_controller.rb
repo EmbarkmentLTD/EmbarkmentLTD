@@ -35,6 +35,12 @@ class HomeController < ApplicationController
     @page = Page.find_by(slug: "contact-us") || create_default_page("contact-us", "Contact Us")
   end
 
+  def privacy_policy
+  end
+
+  def terms_and_conditions
+  end
+
   private
 
   def create_default_page(slug, title)
