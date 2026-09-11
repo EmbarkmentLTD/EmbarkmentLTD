@@ -9,6 +9,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.3.2
+ARG RAILS_MASTER_KEY
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 # Rails app lives here
@@ -23,7 +24,8 @@ RUN apt-get update -qq && \
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+    BUNDLE_WITHOUT="development" \
+    RAILS_MASTER_KEY=$RAILS_MASTER_KEY
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
@@ -45,12 +47,10 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-
-RUN ./bin/rails assets:precompile
-
-
-
+# Precompiling assets for production with the encrypted credentials available only at build time.
+RUN --mount=type=secret,id=RAILS_MASTER_KEY \
+    export RAILS_MASTER_KEY="$(cat /run/secrets/RAILS_MASTER_KEY)" && \
+    ./bin/rails assets:precompile
 
 # Final stage for app image
 FROM base
