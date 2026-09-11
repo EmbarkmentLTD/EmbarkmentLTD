@@ -94,7 +94,9 @@ Rails.application.configure do
   else
     # Never silently drop mail in production: fail loudly instead.
     config.action_mailer.delivery_method = :test
-    Rails.logger.warn "WARNING: RESEND_API_KEY is not set - email delivery is DISABLED"
+    if Rails.logger
+      Rails.logger.warn "WARNING: RESEND_API_KEY is not set - email delivery is DISABLED"
+    end
   end
 
   # Default email headers
