@@ -47,7 +47,6 @@ class HomeController < ApplicationController
     Page.create(
       slug: slug,
       title: title,
-      content: default_content(slug)
     )
   end
 
