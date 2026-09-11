@@ -36,9 +36,11 @@ class HomeController < ApplicationController
   end
 
   def privacy_policy
+    @page = Page.find_by(slug: "privacy-policy") || create_default_page("privacy-policy", "Privacy Policy")
   end
 
   def terms_and_conditions
+    @page = Page.find_by(slug: "terms-and-conditions") || create_default_page("terms-and-conditions", "Terms and Conditions")
   end
 
   private
@@ -47,6 +49,7 @@ class HomeController < ApplicationController
     Page.create(
       slug: slug,
       title: title,
+      content: default_content(slug)
     )
   end
 
@@ -142,6 +145,26 @@ class HomeController < ApplicationController
                 <p class='text-gray-600 text-sm'>Fair prices and direct market access</p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>"
+    when "privacy-policy"
+      "<div class='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+        <div class='bg-white rounded-xl shadow-sm border border-gray-100 p-8 md:p-10'>
+          <h1 class='text-3xl md:text-4xl font-bold text-gray-900 mb-3'>Privacy Policy</h1>
+          <p class='text-sm text-gray-500 mb-8'>Last updated: #{Date.current.strftime("%d %B %Y")}</p>
+          <div class='prose prose-gray max-w-none'>
+            <p>Please contact support if this page content has not been configured yet.</p>
+          </div>
+        </div>
+      </div>"
+    when "terms-and-conditions"
+      "<div class='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+        <div class='bg-white rounded-xl shadow-sm border border-gray-100 p-8 md:p-10'>
+          <h1 class='text-3xl md:text-4xl font-bold text-gray-900 mb-3'>Terms and Conditions</h1>
+          <p class='text-sm text-gray-500 mb-8'>Last updated: #{Date.current.strftime("%d %B %Y")}</p>
+          <div class='prose prose-gray max-w-none'>
+            <p>Please contact support if this page content has not been configured yet.</p>
           </div>
         </div>
       </div>"
