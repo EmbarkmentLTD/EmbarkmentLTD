@@ -93,6 +93,8 @@ production:
     password: <%= ENV.fetch("POSTGRES_PASSWORD", "postgres") %>
     host: <%= ENV.fetch("POSTGRES_HOST", "127.0.0.1") %>
     port: 5432
+    schema_dump: db/cache_schema.rb
+    migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
     database: <%= ENV.fetch("POSTGRES_DB", "embarkmentltd_production") %>
@@ -100,6 +102,8 @@ production:
     password: <%= ENV.fetch("POSTGRES_PASSWORD", "postgres") %>
     host: <%= ENV.fetch("POSTGRES_HOST", "127.0.0.1") %>
     port: 5432
+    schema_dump: db/queue_schema.rb
+    migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
     database: <%= ENV.fetch("POSTGRES_DB", "embarkmentltd_production") %>
@@ -107,3 +111,5 @@ production:
     password: <%= ENV.fetch("POSTGRES_PASSWORD", "postgres") %>
     host: <%= ENV.fetch("POSTGRES_HOST", "127.0.0.1") %>
     port: 5432
+    schema_dump: db/cable_schema.rb
+    migrations_paths: db/cable_migrate
