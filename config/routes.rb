@@ -10,6 +10,10 @@ Rails.application.routes.draw do
   }
 
   root "home#index"
+
+  # Kamal and external probes may use HEAD on /up during rollout checks.
+  match "/up", to: "rails/health#show", via: [ :get, :head ], as: :rails_health_check
+
   # Footer routes
 
   resources :products do
