@@ -110,7 +110,7 @@ builder:
 accessories:
   postgres:
     image: postgres:16
-    host: 145.241.204.6
+    host: 79.72.69.37
     port: 5432
     env:
       clear:
