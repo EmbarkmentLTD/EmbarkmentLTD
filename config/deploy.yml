@@ -24,6 +24,8 @@ servers:
 proxy:
   ssl: true
   host: www.embarkment.co.uk
+  deploy_timeout: 90
+  drain_timeout: 30
 
 # Credentials for your image host.
 # registry:
