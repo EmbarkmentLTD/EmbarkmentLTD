@@ -82,6 +82,22 @@ class QuotationsController < ApplicationController
     quotation_request = current_user.quotation_requests.find_by(id: request_id)
     if quotation_request
       quotation_request.update!(requested_via: medium)
+      session.delete(:quotation)
+
+      QuotationMailer.quotation_request(
+        user: current_user,
+        items: quotation_request.quotation_items.includes(:product).each_with_object({}) { |item, memo| memo[item.product] = item.quantity },
+        contact_name: quotation_request.contact_name,
+        contact_email: quotation_request.contact_email,
+        contact_phone: quotation_request.contact_phone,
+        company: quotation_request.company,
+        delivery_info: [ quotation_request.delivery_street, quotation_request.delivery_city, quotation_request.delivery_state, quotation_request.delivery_zip, quotation_request.delivery_country ].compact.join("\n"),
+        order_details: quotation_request.order_details,
+        timeframe: quotation_request.timeframe,
+        delivery_terms: quotation_request.delivery_terms,
+        special_requirements: quotation_request.special_requirements
+      ).deliver_later
+
       head :ok
     else
       head :not_found

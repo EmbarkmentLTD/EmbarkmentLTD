@@ -3,6 +3,7 @@ class SupportChatMessagesController < ApplicationController
   include RateLimitable
   rate_limit max: 10, within: 1.hour
   before_action :enforce_rate_limit
+  before_action :authenticate_user!, only: [ :conversations ]
 
   def create
     if user_signed_in?
@@ -12,29 +13,113 @@ class SupportChatMessagesController < ApplicationController
     end
   end
 
+  def conversations
+    other_user = User.find(params[:id])
+
+    unless current_user.can_chat_with?(other_user)
+      render json: {
+        success: false,
+        message: "You cannot access this conversation yet."
+      }, status: :forbidden
+      return
+    end
+
+    messages = SupportMessage.between(current_user, other_user).order(created_at: :asc)
+    messages.where(receiver: current_user, read_at: nil).update_all(read_at: Time.current)
+
+    render json: {
+      success: true,
+      other_user: {
+        id: other_user.id,
+        name: other_user.name,
+        role: other_user.role
+      },
+      current_user: {
+        id: current_user.id,
+        name: current_user.name,
+        role: current_user.role
+      },
+      messages: messages.map { |m|
+        {
+          id: m.id,
+          message: m.message,
+          sender: {
+            id: m.sender.id,
+            name: m.sender.name
+          },
+          receiver: {
+            id: m.receiver.id,
+            name: m.receiver.name
+          },
+          created_at: m.created_at,
+          read_at: m.read_at
+        }
+      }
+    }
+  end
+
   private
 
   def handle_logged_in_user
-    # Find or create support conversation
-    support_user = find_or_create_support_conversation
+    message_text = params[:message].to_s.strip
+    if message_text.blank?
+      render json: {
+        success: false,
+        message: "Please type a message before sending."
+      }, status: :unprocessable_entity
+      return
+    end
 
-    # Create message
+    receiver = find_receiver_for_logged_in_user
+    unless receiver
+      render json: {
+        success: false,
+        message: "Please select who you want to chat with."
+      }, status: :unprocessable_entity
+      return
+    end
+
+    if current_user.needs_support_approval_for_chat_with?(receiver) && !current_user.can_chat_with?(receiver)
+      request = ChatAccessRequest.find_or_create_by(requester: current_user, target: receiver)
+      request.update!(status: "pending") unless request.pending?
+
+      render json: {
+        success: false,
+        requires_approval: true,
+        message: "Your request to chat with #{receiver.name} was sent to support. You can chat with support now while we review it."
+      }, status: :forbidden
+      return
+    end
+
+    unless current_user.can_chat_with?(receiver)
+      render json: {
+        success: false,
+        message: "You are not allowed to chat with this contact yet."
+      }, status: :forbidden
+      return
+    end
+
     @message = SupportMessage.create(
-      message: params[:message],
+      message: message_text,
       sender: current_user,
-      receiver: support_user,
+      receiver: receiver,
       created_at: Time.current,
       updated_at: Time.current
     )
 
     if @message.persisted?
-      # Notify support user via email
-      AdminMailer.new_support_message(support_user, @message).deliver_later
+      if receiver.support? || receiver.admin?
+        AdminMailer.new_support_message(receiver, @message).deliver_later
+      end
 
       render json: {
         success: true,
-        message: "Message sent! Support will respond soon.",
-        auto_redirect: false
+        message: "Message sent successfully.",
+        receiver: {
+          id: receiver.id,
+          name: receiver.name,
+          role: receiver.role
+        }
       }
     else
       render json: {
@@ -72,13 +157,14 @@ class SupportChatMessagesController < ApplicationController
     }
   end
 
-  def find_or_create_support_conversation
-    # Check if user already has an open conversation with any support
-    existing_support = current_user.support_conversations.first
-
-    return existing_support if existing_support
-
-    # Assign to available support user (least busy)
-    User.support_staff.order("RANDOM()").first || User.admin.first
+  def find_receiver_for_logged_in_user
+    receiver_id = params[:receiver_id].presence || params[:user_id].presence
+    if receiver_id.present?
+      User.find_by(id: receiver_id)
+    elsif current_user.admin? || current_user.support?
+      nil
+    else
+      User.support_staff.where.not(email_verified_at: nil).order(:id).first || User.admin.first
+    end
   end
 end

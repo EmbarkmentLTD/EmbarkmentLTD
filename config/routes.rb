@@ -4,7 +4,7 @@ Rails.application.routes.draw do
     sign_out: "logout",
     registration: "register"
   }, controllers: {
-    sessions: "devise/sessions",
+    sessions: "users/sessions",
     registrations: "users/registrations",
     passwords: "users/passwords"
   }
@@ -40,6 +40,9 @@ Rails.application.routes.draw do
   post "/verify", to: "verifications#verify", as: "verify_verification"
   post "/verify/resend", to: "verifications#resend", as: "resend_verification"
 
+  get "/sign_in_verification", to: "sign_in_verifications#show", as: "sign_in_verification"
+  post "/sign_in_verification", to: "sign_in_verifications#create"
+  post "/sign_in_verification/resend", to: "sign_in_verifications#resend", as: "resend_sign_in_verification"
 
   # SIMPLE quotation routes - no resources
   get "quotations/cart", to: "quotations#cart", as: "quotation_cart"
@@ -59,11 +62,13 @@ Rails.application.routes.draw do
 
   # Support Chat Routes
   post "/support_chat_messages", to: "support_chat_messages#create"
+  get "/support_chat_messages/conversations/:id", to: "support_chat_messages#conversations", as: "support_chat_conversation"
 
   # Support Dashboard Routes - FIXED: Remove namespace and use simple routes
   get "/support/dashboard", to: "support_dashboard#index", as: "support_dashboard"
   get "/support/conversations/:id", to: "support_dashboard#conversations", as: "support_conversations"
   post "/support/create_message", to: "support_dashboard#create_message", as: "support_create_message"
+  post "/support/chat_access_requests/:id/approve", to: "support_dashboard#approve_chat_access_request", as: "approve_support_chat_access_request"
 
   # Attachment routes
   get "attachments/:id/purge", to: "attachments#purge", as: "purge_attachment"

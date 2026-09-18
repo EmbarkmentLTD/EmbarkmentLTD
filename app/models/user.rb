@@ -9,7 +9,8 @@ class User < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :order_items, through: :orders
   has_many :quotation_requests, dependent: :destroy
-
+  has_many :chat_access_requests_as_requester, as: :requester, class_name: "ChatAccessRequest", dependent: :destroy
+  has_many :chat_access_requests_as_target, as: :target, class_name: "ChatAccessRequest", dependent: :destroy
 
  has_many :sent_messages, class_name: "SupportMessage",
            foreign_key: "sender_id",
@@ -60,12 +61,85 @@ class User < ApplicationRecord
     role == "support"
   end
 
+  def support_verified?
+    support? && email_verified?
+  end
+
   def can_chat_with_support?
     buyer? || supplier?
   end
 
   def can_chat_with_users?
     admin? || support?
+  end
+
+  def chat_contact_options
+    support_users = User.support_staff
+
+    if admin? || support?
+      User.where.not(id: id)
+    elsif buyer?
+      support_users.or(User.where(role: "supplier")).where.not(id: id).distinct
+    elsif supplier?
+      support_users.or(User.where(role: "buyer")).where.not(id: id).distinct
+    else
+      User.none
+    end
+  end
+
+  def can_chat_with?(other_user)
+    return false if other_user.blank? || other_user == self
+    return false unless can_use_chat_widget?
+
+    if admin?
+      return true
+    end
+
+    if support?
+      return true
+    end
+
+    if buyer?
+      return true if other_user.admin? || other_user.support?
+      return false unless other_user.supplier?
+      return ChatAccessRequest.approved_for?(self, other_user)
+    end
+
+    if supplier?
+      return true if other_user.admin? || other_user.support?
+      return false unless other_user.buyer?
+      return ChatAccessRequest.approved_for?(self, other_user)
+    end
+
+    false
+  end
+
+  def can_use_chat_widget?
+    return true if admin? || support?
+    return email_verified? if buyer? || supplier?
+
+    false
+  end
+
+  def needs_support_approval_for_chat_with?(other_user)
+    return false if other_user.blank? || other_user == self
+    return false if admin? || support?
+    return false unless buyer? || supplier?
+    return false if other_user.admin? || other_user.support?
+
+    (buyer? && other_user.supplier?) || (supplier? && other_user.buyer?)
+  end
+
+  def chat_access_pending_with?(other_user)
+    return false if other_user.blank?
+
+    ChatAccessRequest.pending.where(requester: self, target: other_user).exists?
+  end
+
+  def approved_chat_targets_for_role(role_name)
+    User.joins(:chat_access_requests_as_target)
+        .where(chat_access_requests: { requester_type: "User", requester_id: id, target_type: "User", target_id: User.where(role: role_name).select(:id), status: "approved" })
+        .distinct
   end
 
   def unread_support_messages
@@ -168,6 +242,24 @@ class User < ApplicationRecord
     email_verification_sent_at < 2.minutes.ago
   end
 
+  def sign_in_code_expired?
+    sign_in_code_sent_at.present? && sign_in_code_sent_at < 10.minutes.ago
+  end
+
+  def generate_sign_in_code
+    self.sign_in_code = SecureRandom.random_number(100000..999999).to_s
+    self.sign_in_code_sent_at = Time.current
+    save!
+    sign_in_code
+  end
+
+  def verify_sign_in_code(code)
+    return false if sign_in_code.blank? || sign_in_code_sent_at.blank?
+    return false if sign_in_code_expired?
+
+    sign_in_code == code.to_s
+  end
+
   def needs_verification_reminder?
     !email_verified? &&
     (last_verification_reminder_at.nil? ||
@@ -175,8 +267,8 @@ class User < ApplicationRecord
   end
 
   # Generate and send verification code
-  def send_verification_code
-    return false unless can_resend_verification?
+  def send_verification_code(force: false)
+    return false unless force || can_resend_verification?
 
     # Generate 6-digit code
     self.email_verification_code = SecureRandom.random_number(100000..999999).to_s
@@ -291,8 +383,9 @@ class User < ApplicationRecord
     # Send welcome email
     send_welcome_email
 
-    # Send verification code (only for non-admin users)
-    if !admin? && !support?
+    # Send verification code for all non-admin users, including support staff.
+    # Support staff are created by admins and must verify before they are marked as active.
+    unless admin?
       send_verification_code
     end
   end

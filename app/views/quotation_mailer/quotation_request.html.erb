@@ -1,28 +1,30 @@
 <h2>New Quotation Request</h2>
 
 <h3>Contact Information</h3>
-<p><strong>Name:</strong> <%= @user.name %></p>
-<p><strong>Email:</strong> <%= @user.email %></p>
-<p><strong>Phone:</strong> <%= @quotation_data[:contact_info] %></p>
+<p><strong>Name:</strong> <%= @contact_name %></p>
+<p><strong>Email:</strong> <%= @contact_email %></p>
+<p><strong>Phone:</strong> <%= @contact_phone.presence || "Not provided" %></p>
+<% if @company.present? %>
+<p><strong>Company:</strong> <%= @company %></p>
+<% end %>
 
 <h3>Delivery Information</h3>
-<p><%= simple_format @quotation_data[:delivery_info] %></p>
+<p><%= simple_format(@delivery_info.presence || "Not provided") %></p>
 
-<h3>Order Details</h3>
-<p><%= @quotation_data[:order_details] %></p>
+<h3>Order Summary</h3>
+<p><strong>Order details:</strong> <%= @order_details.presence || "Not provided" %></p>
+<p><strong>Timeframe:</strong> <%= @timeframe.presence || "Not provided" %></p>
+<p><strong>Delivery terms:</strong> <%= @delivery_terms.presence || "Not provided" %></p>
+<p><strong>Special requirements:</strong> <%= simple_format(@special_requirements.presence || "Not provided") %></p>
 
-<h3>Timeframe:</h3>
-<p><%= @quotation_data[:timeframe] %></p>
-
-<h3>Delivery Terms:</h3>
-<p><%= @quotation_data[:delivery_terms] %></p>
-
-<h3>Special Requirements:</h3>
-<p><%= simple_format @quotation_data[:special_requirements] %></p>
-
-<h3>Items Requested:</h3>
+<h3>Items Requested</h3>
 <ul>
-    <% @items.each do |product, quantity| %>
-    <li><%= product.name %> - Qty: <%= quantity %></li>
-    <% end %>
+  <% @items.each do |product, quantity| %>
+    <% unit_price = product.price.to_d %>
+    <% line_total = unit_price * quantity.to_i %>
+    <li><%= product.name %> — Qty: <%= quantity %> — Unit Price: <%= number_to_currency(unit_price, unit: "£") %> — Line Total: <%= number_to_currency(line_total, unit: "£") %></li>
+  <% end %>
 </ul>
+
+<% total_price = @items.sum { |product, quantity| product.price.to_d * quantity.to_i } %>
+<p><strong>Total:</strong> <%= number_to_currency(total_price, unit: "£") %></p>

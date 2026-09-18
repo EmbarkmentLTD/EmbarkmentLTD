@@ -1,20 +1,18 @@
 // app/javascript/chat_widget.js - UPDATED AND FIXED
-document.addEventListener('DOMContentLoaded', function() {
+function initializeChatWidget() {
   const chatWidget = document.getElementById('chat-widget');
+  if (!chatWidget) return;
+  if (chatWidget.dataset.initialized === 'true') return;
+  chatWidget.dataset.initialized = 'true';
+
   const chatToggle = document.getElementById('chat-toggle');
   const chatBox = document.getElementById('chat-box');
   const chatClose = document.getElementById('chat-close');
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
   const chatMessages = document.getElementById('chat-messages');
-  
-  // Check if chat widget exists
-  if (!chatWidget) {
-    console.log('Chat widget not found');
-    return;
-  }
-
-  console.log('Chat widget initialized');
+  const approvalHint = document.getElementById('chat-approval-hint');
+  let isSubmitting = false;
 
   // Draggable functionality - SIMPLIFIED VERSION
   let isDragging = false;
@@ -115,17 +113,59 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('touchend', stopDrag);
 
   // Load saved position
+  function getCurrentTranslation() {
+    const transform = chatWidget.style.transform;
+    if (!transform) return { x: 0, y: 0 };
+
+    const match = transform.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/);
+    if (!match) return { x: 0, y: 0 };
+
+    return {
+      x: parseFloat(match[1]) || 0,
+      y: parseFloat(match[2]) || 0
+    };
+  }
+
+  function persistPosition(x, y) {
+    chatWidget.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    localStorage.setItem('chatWidgetPosition', JSON.stringify({ x, y }));
+  }
+
+  function keepWidgetInViewport() {
+    const margin = 8;
+    const current = getCurrentTranslation();
+
+    // Compute bounds from the widget's natural fixed position (no translation)
+    // and clamp the current translation into those bounds.
+    chatWidget.style.transform = 'translate3d(0px, 0px, 0px)';
+    const baseRect = chatWidget.getBoundingClientRect();
+
+    const minX = margin - baseRect.left;
+    const maxX = (window.innerWidth - margin) - baseRect.right;
+    const minY = margin - baseRect.top;
+    const maxY = (window.innerHeight - margin) - baseRect.bottom;
+
+    const clampedX = Math.max(minX, Math.min(maxX, current.x));
+    const clampedY = Math.max(minY, Math.min(maxY, current.y));
+
+    persistPosition(clampedX, clampedY);
+  }
+
   function loadPosition() {
     try {
       const savedPosition = localStorage.getItem('chatWidgetPosition');
       if (savedPosition) {
         const { x, y } = JSON.parse(savedPosition);
-        chatWidget.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        persistPosition(x, y);
       }
+
+      keepWidgetInViewport();
     } catch (e) {
       console.error('Error loading chat position:', e);
     }
   }
+
+  window.addEventListener('resize', keepWidgetInViewport);
 
   // Toggle chat box - SIMPLIFIED
   if (chatToggle) {
@@ -178,9 +218,15 @@ document.addEventListener('DOMContentLoaded', function() {
   if (userSelect) {
     userSelect.addEventListener('change', function() {
       const isUserSelected = this.value !== '';
+      const selectedOption = this.options[this.selectedIndex];
+      const requiresApproval = selectedOption?.dataset?.requiresApproval === 'true';
       
-      if (chatInput) chatInput.disabled = !isUserSelected;
-      if (sendButton) sendButton.disabled = !isUserSelected;
+      if (chatInput) chatInput.disabled = !isUserSelected || isSubmitting;
+      if (sendButton) sendButton.disabled = !isUserSelected || isSubmitting;
+
+      if (approvalHint) {
+        approvalHint.classList.toggle('hidden', !isUserSelected || !requiresApproval);
+      }
       
       if (isUserSelected) {
         // Clear and load conversation
@@ -203,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (chatForm) {
     chatForm.addEventListener('submit', function(e) {
       e.preventDefault();
+      if (isSubmitting) return;
 
       const message = chatInput?.value.trim();
       
@@ -225,9 +272,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Show typing indicator
-      const typingIndicator = addTypingIndicator();
+      // Capture data before disabling fields; disabled inputs are omitted from FormData.
       const formData = new FormData(this);
+
+      // Show typing indicator
+      isSubmitting = true;
+      if (chatInput) chatInput.disabled = true;
+      if (sendButton) sendButton.disabled = true;
+
+      const typingIndicator = addTypingIndicator();
       
       fetch(this.action, {
         method: 'POST',
@@ -237,11 +290,16 @@ document.addEventListener('DOMContentLoaded', function() {
           'Accept': 'application/json'
         }
       })
-      .then(response => {
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
+          return {
+            success: false,
+            requires_approval: !!data.requires_approval,
+            message: data.message || `Server error: ${response.status}`
+          };
         }
-        return response.json();
+        return data;
       })
       .then(data => {
         typingIndicator.remove();
@@ -265,6 +323,8 @@ document.addEventListener('DOMContentLoaded', function() {
               loadConversation(userSelect.value);
             }, 1000);
           }
+        } else if (data.requires_approval) {
+          addMessage(data.message || "This chat requires support approval first.", 'bot');
         } else {
           addMessage(data.message || "Failed to send message.", 'bot');
         }
@@ -273,6 +333,15 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error:', error);
         typingIndicator.remove();
         addMessage("Sorry, there was an error sending your message.", 'bot');
+      })
+      .finally(() => {
+        isSubmitting = false;
+        if (chatInput) {
+          chatInput.disabled = !!(userSelect && !userSelect.value);
+        }
+        if (sendButton) {
+          sendButton.disabled = !!(userSelect && !userSelect.value);
+        }
       });
     });
   }
@@ -294,10 +363,13 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     chatMessages.appendChild(loadingDiv);
 
-    fetch(`/support/conversations/${userId}.json`)
-      .then(response => {
-        if (!response.ok) throw new Error('Failed to load conversation');
-        return response.json();
+    fetch(`/support_chat_messages/conversations/${userId}.json`)
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to load conversation');
+        }
+        return data;
       })
       .then(data => {
         loadingDiv.remove();
@@ -320,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(error => {
         console.error('Error loading conversation:', error);
         loadingDiv.remove();
-        addMessage("Failed to load conversation. Please try again.", 'bot');
+        addMessage(error.message || "Failed to load conversation. Please try again.", 'bot');
       });
   }
 
@@ -404,6 +476,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only update if user is signed in
     const userId = document.querySelector('meta[name="current-user-id"]')?.content;
     if (!userId) return;
+    const role = document.querySelector('meta[name="current-user-role"]')?.content;
+
+    // Only support/admin can read /support/dashboard.json.
+    if (role !== 'support' && role !== 'admin') return;
     
     fetch('/support/dashboard.json')
       .then(response => response.json())
@@ -503,5 +579,11 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(updateAllUnreadBadges, 1000);
     }
   });
-});
+}
+
+document.addEventListener('DOMContentLoaded', initializeChatWidget);
+document.addEventListener('turbo:load', initializeChatWidget);
+if (document.readyState !== 'loading') {
+  initializeChatWidget();
+}
 

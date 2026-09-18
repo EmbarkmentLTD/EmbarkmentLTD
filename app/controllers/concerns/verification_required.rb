@@ -8,8 +8,8 @@ module VerificationRequired
   private
 
   def check_verification
-    # Skip for admin/support users
-    return if current_user.admin? || current_user.support?
+    # Skip for admin users only; support users must verify before using support tools
+    return if current_user.admin?
 
     # Skip for verification controller
     return if controller_name == "verifications"

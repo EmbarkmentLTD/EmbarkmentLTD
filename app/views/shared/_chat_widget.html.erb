@@ -1,6 +1,6 @@
 <!-- Add this RIGHT HERE at the beginning - BEFORE your existing chat widget -->
 <% if user_signed_in? %>
-<% if current_user.email_verified? || current_user.admin? || current_user.support? %>
+<% if current_user.can_use_chat_widget? %>
 <!-- Show full chat widget (your existing code goes here) -->
 
 <!--------------------------------- Draggable Floating Quick Chat Widget ------------------->
@@ -26,13 +26,7 @@
         <div class="bg-green-600 text-white px-4 py-3 rounded-t-lg flex justify-between items-center drag-handle cursor-move">
             <div class="flex items-center space-x-2">
                 <div class="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
-                <span class="font-semibold">
-                    <% if user_signed_in? && (current_user&.support? || current_user&.admin?) %>
-                    Quick Chat
-                    <% else %>
-                    Support Chat
-                    <% end %>
-                </span>
+                <span class="font-semibold">Chat</span>
                 <!-- Single badge element in header -->
                 <% if user_signed_in? && current_user.unread_support_messages_count > 0 %>
                 <span id="chat-header-badge" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
@@ -55,8 +49,8 @@
             <% if user_signed_in? && (current_user&.support? || current_user&.admin?) %>
             <div class="flex">
                 <div class="bg-blue-100 border border-blue-200 rounded-lg p-3 max-w-xs">
-                    <p class="text-sm text-blue-800">👋 Quick chat mode active</p>
-                    <p class="text-xs text-blue-600 mt-1">Select a user from the dropdown below</p>
+                    <p class="text-sm text-blue-800">👋 Admin/Support chat mode</p>
+                    <p class="text-xs text-blue-600 mt-1">You can message any user directly</p>
                     <% if user_signed_in? && current_user.unread_support_messages_count > 0 %>
                     <p id="user-unread-message" class="text-xs text-blue-800 mt-1 font-medium">
                         You have <%= current_user.unread_support_messages_count %> unread message<%= current_user.unread_support_messages_count == 1 ? '' : 's' %>
@@ -69,8 +63,8 @@
             <% else %>
             <div class="flex">
                 <div class="bg-green-100 border border-green-200 rounded-lg p-3 max-w-xs">
-                    <p class="text-sm text-green-800">Hello! 👋 How can we help you today?</p>
-                    <p class="text-xs text-green-600 mt-1">We typically reply within minutes</p>
+                    <p class="text-sm text-green-800">Hello! 👋 Choose support or a contact below.</p>
+                    <p class="text-xs text-green-600 mt-1">Buyer/seller direct chat needs support approval first.</p>
                     <% if user_signed_in? && current_user.unread_support_messages_count > 0 %>
                     <p id="user-unread-message" class="text-xs text-green-800 mt-1 font-medium">
                         You have <%= current_user.unread_support_messages_count %> unread message<%= current_user.unread_support_messages_count == 1 ? '' : 's' %>
@@ -85,70 +79,46 @@
 
         <!-- Chat Input Area -->
         <div class="border-t border-gray-200 p-3 bg-white rounded-b-lg">
-            <% if user_signed_in? && (current_user&.support? || current_user&.admin?) %>
-            <!-- Support User Interface -->
-            <%= form_with url: support_create_message_path, method: :post, id: "chat-form", class: "space-y-2", data: { remote: true } do |form| %>
+            <% if user_signed_in? %>
+            <%= form_with url: support_chat_messages_path, method: :post, id: "chat-form", class: "space-y-2", data: { turbo: false } do |form| %>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
+                <p class="text-xs text-blue-800 text-center">
+                    Chatting as <strong><%= current_user.name %></strong> (<%= current_user.role %>)
+                </p>
+            </div>
             <div class="mb-2">
-                <select name="user_id" id="support-user-select" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
-                    <option value="">Select a user to chat with...</option>
-                    <% if user_signed_in? %>
-                    <% 
-                    # Cache unread counts to avoid N+1 queries
-                    # FIX: Count messages FROM users TO current support user (not the other way around)
-                    unread_counts = {}
-                    User.where.not(id: current_user.id).each do |user|
-                      unread_counts[user.id] = SupportMessage.where(
-                        sender_id: user.id,
-                        sender_type: 'User',
-                        receiver_id: current_user.id,
-                        receiver_type: 'User',
-                        read_at: nil
-                      ).count
-                    end
-                    
-                    # Sort users by unread count then name
-                    users_sorted = User.where.not(id: current_user.id).sort_by do |user|
-                      [-unread_counts[user.id], user.name.downcase]
-                    end
-                    %>
-                    <% users_sorted.each do |user| %>
-                    <% unread_count = unread_counts[user.id] || 0 %>
-                    <option value="<%= user.id %>" data-unread-count="<%= unread_count %>">
-                        <%= user.name %>
-                        <% if unread_count > 0 %>
-                        <span class="text-red-600 font-medium">
-                            (<%= unread_count %> unread)
-                        </span>
-                        <% end %>
+                <select name="receiver_id" id="support-user-select" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                    <option value="">Select who to message...</option>
+                    <% current_user.chat_contact_options.order(:name).each do |contact| %>
+                    <% requires_approval = current_user.needs_support_approval_for_chat_with?(contact) && !current_user.can_chat_with?(contact) %>
+                    <option value="<%= contact.id %>" data-requires-approval="<%= requires_approval %>">
+                        <%= contact.name %> (<%= contact.role %>)<%= requires_approval ? ' - approval required' : '' %>
                     </option>
-                    <% end %>
                     <% end %>
                 </select>
             </div>
+            <div id="chat-approval-hint" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded px-2 py-2 mb-2">
+                This direct chat requires support approval. Send once to request approval, or message support now.
+            </div>
             <div class="flex space-x-2">
-                <textarea name="message" id="chat-input" rows="1" placeholder="Type your message..." class="flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm" maxlength="500" disabled></textarea>
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors self-end disabled:bg-gray-400" disabled id="send-button">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                </button>
+                <%= form.text_area :message,
+                    id: "chat-input",
+                    rows: 1,
+                    placeholder: "Type your message...",
+                    class: "flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm",
+                    maxlength: 500,
+                    disabled: true %>
+                <%= form.button type: "submit", id: "send-button",
+                    class: "bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors self-end disabled:bg-gray-400",
+                    disabled: true do %>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+                <% end %>
             </div>
             <% end %>
             <% else %>
-            <!-- Regular User Interface or Non-logged in User -->
-            <%= form_with url: support_chat_messages_path, method: :post, id: "chat-form", class: "space-y-2" do |form| %>
-            <% if user_signed_in? %>
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
-                <p class="text-xs text-blue-800 text-center">
-                    💬 Chatting as <strong><%= current_user.name %></strong>
-                </p>
-                <p id="user-unread-message" class="text-xs text-blue-800 text-center mt-1 font-medium <%= current_user.unread_support_messages_count > 0 ? '' : 'hidden' %>">
-                    You have <%= current_user.unread_support_messages_count %> unread message<%= current_user.unread_support_messages_count == 1 ? '' : 's' %>
-                </p>
-            </div>
-            <%= form.hidden_field :name, value: current_user.name %>
-            <%= form.hidden_field :email, value: current_user.email %>
-            <% else %>
+            <%= form_with url: support_chat_messages_path, method: :post, id: "chat-form", class: "space-y-2", data: { turbo: false } do |form| %>
             <div class="grid grid-cols-2 gap-2">
                 <%= form.text_field :name, 
                     placeholder: "Your name",
@@ -174,10 +144,13 @@
                 <% end %>
             </div>
             <% end %>
-            <% end %>
             <p class="text-xs text-gray-500 mt-2 text-center">
-                <% if user_signed_in? && (current_user&.support? || current_user&.admin?) %>
-                Messages are sent directly to selected user
+                <% if user_signed_in? && current_user.admin? %>
+                Admin access: no chat restrictions.
+                <% elsif user_signed_in? && current_user.support? %>
+                Support access: you can message any user.
+                <% elsif user_signed_in? %>
+                Buyers/sellers can message support directly. Direct buyer/seller chats need support approval.
                 <% else %>
                 All messages are sent to our support team
                 <% end %>
@@ -186,12 +159,19 @@
     </div>
 </div>
 
-<%= javascript_include_tag 'chat_widget' %>
+<script type="module">
+    import "chat_widget"
+</script>
 
 <style>
     /* Additional styles for better dragging experience */
     #chat-widget {
-        transition: transform 0.1s ease;
+        position: fixed;
+        right: max(1rem, env(safe-area-inset-right));
+        bottom: max(1rem, env(safe-area-inset-bottom));
+        z-index: 50;
+        transition: transform 0.12s ease;
+        touch-action: manipulation;
     }
 
     #chat-widget:active {
@@ -212,15 +192,27 @@
 
     /* Ensure chat box stays positioned relative to widget when dragged */
     #chat-box {
+        position: absolute;
+        right: 0;
+        bottom: 4.5rem;
+        width: min(22rem, calc(100vw - 1.5rem));
+        max-height: min(28rem, calc(100vh - 7rem));
         transform-origin: bottom right;
+        overscroll-behavior: contain;
     }
 
     /* Mobile optimizations */
     @media (max-width: 640px) {
+        #chat-widget {
+            right: 0.75rem;
+            bottom: 0.75rem;
+        }
+
         #chat-box {
-            width: 90vw;
-            right: 5vw;
-            bottom: 5rem;
+            width: min(92vw, 22rem);
+            right: 0;
+            bottom: 4.25rem;
+            max-height: min(70vh, 28rem);
         }
     }
 

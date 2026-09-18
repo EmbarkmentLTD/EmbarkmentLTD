@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_27_000000) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_18_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,6 +50,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_27_000000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "chat_access_requests", force: :cascade do |t|
+    t.string "requester_type", null: false
+    t.bigint "requester_id", null: false
+    t.string "target_type", null: false
+    t.bigint "target_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requester_type", "requester_id", "target_type", "target_id"], name: "index_chat_access_requests_on_requester_target_unique", unique: true
+    t.index ["requester_type", "requester_id"], name: "index_chat_access_requests_on_requester"
+    t.index ["target_type", "target_id"], name: "index_chat_access_requests_on_target"
   end
 
   create_table "order_items", force: :cascade do |t|
@@ -110,7 +123,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_27_000000) do
     t.datetime "updated_at", null: false
     t.boolean "verified"
     t.string "serial_number"
+    t.index ["category"], name: "index_products_on_category"
+    t.index ["created_at"], name: "index_products_on_created_at"
+    t.index ["featured"], name: "index_products_on_featured"
     t.index ["serial_number"], name: "index_products_on_serial_number", unique: true
+    t.index ["stock_quantity"], name: "index_products_on_stock_quantity"
     t.index ["user_id"], name: "index_products_on_user_id"
   end
 
@@ -197,6 +214,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_27_000000) do
     t.string "unverified_email"
     t.datetime "last_verification_reminder_at"
     t.integer "verification_attempts"
+    t.string "sign_in_code"
+    t.datetime "sign_in_code_sent_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["email_verification_sent_at"], name: "index_users_on_email_verification_sent_at"
     t.index ["email_verified_at", "created_at"], name: "index_users_on_email_verified_at_and_created_at"

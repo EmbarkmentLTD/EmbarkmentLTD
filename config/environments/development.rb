@@ -45,11 +45,18 @@ Rails.application.configure do
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 
-config.action_mailer.delivery_method = :smtp
-config.action_mailer.smtp_settings = {
-  address: "localhost",
-  port: 1025
-}
+  # Allow the usual local development hosts used for browser and request testing.
+  config.hosts.clear
+  config.hosts << "localhost"
+  config.hosts << "127.0.0.1"
+  config.hosts << "::1"
+  config.hosts << /.*\.localhost/
+
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: "localhost",
+    port: 1025
+  }
 
 
   # Print deprecation notices to the Rails logger.
