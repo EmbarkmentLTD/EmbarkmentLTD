@@ -26,8 +26,11 @@ class SignInVerificationsController < ApplicationController
 
   def resend
     @user.generate_sign_in_code
-    UserMailer.sign_in_code(@user).deliver_now rescue nil
+    UserMailer.sign_in_code(@user).deliver_later
     redirect_to sign_in_verification_path, notice: "A new code has been sent to your email."
+  rescue => e
+    Rails.logger.error("Sign-in code resend failed for user #{@user&.id}: #{e.class} #{e.message}")
+    redirect_to sign_in_verification_path, alert: "Unable to resend code right now. Please try again in a moment."
   end
 
   private

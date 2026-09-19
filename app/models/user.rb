@@ -247,10 +247,18 @@ class User < ApplicationRecord
   end
 
   def generate_sign_in_code
-    self.sign_in_code = SecureRandom.random_number(100000..999999).to_s
-    self.sign_in_code_sent_at = Time.current
-    save!
-    sign_in_code
+    code = SecureRandom.random_number(100000..999999).to_s
+    timestamp = Time.current
+
+    # Avoid unrelated model validations blocking sign-in code generation.
+    if persisted?
+      update_columns(sign_in_code: code, sign_in_code_sent_at: timestamp, updated_at: timestamp)
+    else
+      self.sign_in_code = code
+      self.sign_in_code_sent_at = timestamp
+    end
+
+    code
   end
 
   def verify_sign_in_code(code)
