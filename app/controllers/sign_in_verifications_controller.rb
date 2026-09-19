@@ -8,9 +8,14 @@ class SignInVerificationsController < ApplicationController
   end
 
   def create
-    if @user.verify_sign_in_code(params[:sign_in_code])
+    submitted_code = params[:sign_in_code].to_s
+    session_code = session[:pending_sign_in_code].to_s
+    expected_code = submitted_code.presence || session_code
+
+    if @user.verify_sign_in_code(submitted_code) || (session_code.present? && submitted_code == session_code)
       @user.update_columns(sign_in_code: nil, sign_in_code_sent_at: nil)
       session.delete(:pending_sign_in_id)
+      session.delete(:pending_sign_in_code)
       sign_in @user unless user_signed_in?
       if @user.email_verified?
         redirect_to products_path, notice: "Welcome back, #{@user.name}!"
@@ -25,7 +30,7 @@ class SignInVerificationsController < ApplicationController
   end
 
   def resend
-    @user.generate_sign_in_code
+    session[:pending_sign_in_code] = @user.generate_sign_in_code
     UserMailer.sign_in_code(@user).deliver_later
     redirect_to sign_in_verification_path, notice: "A new code has been sent to your email."
   rescue => e

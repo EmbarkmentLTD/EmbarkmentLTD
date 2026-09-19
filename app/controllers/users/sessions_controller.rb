@@ -12,8 +12,8 @@ class Users::SessionsController < Devise::SessionsController
 
     if resource.present? && resource.valid_password?(password)
       session[:pending_sign_in_id] = resource.id
+      session[:pending_sign_in_code] = resource.generate_sign_in_code
       sign_in(resource_name, resource)
-      resource.generate_sign_in_code
       UserMailer.sign_in_code(resource).deliver_later
 
       set_flash_message!(:notice, :signed_in) if is_flashing_format?
