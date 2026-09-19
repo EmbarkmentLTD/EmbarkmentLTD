@@ -11,15 +11,11 @@ class Users::SessionsController < Devise::SessionsController
     self.resource = resource_class.find_for_database_authentication(email: email)
 
     if resource.present? && resource.valid_password?(password)
+      session[:pending_sign_in_id] = resource.id
       sign_in(resource_name, resource)
 
       set_flash_message!(:notice, :signed_in) if is_flashing_format?
-      if ENV["RESEND_API_KEY"].present?
-        session[:pending_sign_in_id] = resource.id
-        respond_with resource, location: sign_in_verification_path
-      else
-        respond_with resource, location: products_path
-      end
+      respond_with resource, location: sign_in_verification_path
       return
     end
 
@@ -32,7 +28,7 @@ class Users::SessionsController < Devise::SessionsController
   protected
 
   def after_sign_in_path_for(resource)
-    ENV["RESEND_API_KEY"].present? ? sign_in_verification_path : products_path
+    sign_in_verification_path
   end
 
   def after_sign_out_path_for(resource)
