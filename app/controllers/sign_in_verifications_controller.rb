@@ -9,11 +9,10 @@ class SignInVerificationsController < ApplicationController
 
   def create
     submitted_code = params[:sign_in_code].to_s
-    session_code = session[:pending_sign_in_code].to_s
-    expected_code = submitted_code.presence || session_code
 
-    if @user.verify_sign_in_code(submitted_code) || (session_code.present? && submitted_code == session_code)
-      @user.update_columns(sign_in_code: nil, sign_in_code_sent_at: nil)
+    # verify_sign_in_code now marks code as used (one-time) before returning true
+    if @user.verify_sign_in_code(submitted_code)
+      # Code was valid and marked as used
       session.delete(:pending_sign_in_id)
       session.delete(:pending_sign_in_code)
       sign_in @user unless user_signed_in?

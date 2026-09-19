@@ -4,8 +4,8 @@
             <%= link_to root_path, class: "inline-flex items-center space-x-3" do %>
             <%= image_tag "logo/logo_no_glow_or_shadow.png", alt: "Embarkment Logo", class: "inline-block h-10 w-auto" %>
             <% end %>
-            <h2 class="mt-6 text-2xl font-bold text-gray-900">Verify Sign In</h2>
-            <p class="mt-2 text-sm text-gray-600">A 6-digit sign-in code has been sent to your email. If your account is not verified yet, we will send the verification code after sign in.</p>
+            <h2 class="mt-6 text-2xl font-bold text-gray-900">Verify Your Sign In</h2>
+            <p class="mt-2 text-sm text-gray-600">A 6-digit sign-in code has been sent to your email. Please enter it below to complete your sign in.</p>
         </div>
 
         <div class="bg-white rounded-2xl shadow-lg p-8">
@@ -31,7 +31,7 @@
                            placeholder="000000" autocomplete="one-time-code" autofocus>
                 </div>
                 <p class="text-xs text-gray-500 mt-2 text-center">
-                    Check your email inbox. This code expires in 10 minutes.
+                    This code can only be used once and expires in 10 minutes.
                 </p>
             </div>
             <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors cursor-pointer">

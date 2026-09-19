@@ -265,7 +265,10 @@ class User < ApplicationRecord
     return false if sign_in_code.blank? || sign_in_code_sent_at.blank?
     return false if sign_in_code_expired?
 
-    sign_in_code == code.to_s
+    # Mark as used immediately after verification (one-time use)
+    return false unless sign_in_code == code.to_s
+    update_columns(sign_in_code: nil, sign_in_code_sent_at: nil)
+    true
   end
 
   def needs_verification_reminder?
