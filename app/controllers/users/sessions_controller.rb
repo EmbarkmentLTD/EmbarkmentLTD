@@ -21,6 +21,7 @@ class Users::SessionsController < Devise::SessionsController
 
     self.resource = resource_class.new(sign_in_params)
     clean_up_passwords(resource)
+    flash[:alert] = "Invalid email or password."
     respond_with resource, location: new_session_path(resource_name)
   end
 
