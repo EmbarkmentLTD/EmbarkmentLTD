@@ -31,6 +31,17 @@ class UserMailer < ApplicationMailer
     )
   end
 
+  def sign_in_code(user)
+    @user = user
+    @sign_in_code = user.sign_in_code
+    @sign_in_verification_url = sign_in_verification_url
+
+    mail(
+      to: @user.email,
+      subject: "Your Sign-In Code - EmbarkmentLTD"
+    )
+  end
+
   private
 
 #   def verification_url
@@ -47,6 +58,12 @@ class UserMailer < ApplicationMailer
 
 def verification_url
   Rails.application.routes.url_helpers.verification_url(
+    Rails.application.config.action_mailer.default_url_options
+  )
+end
+
+def sign_in_verification_url
+  Rails.application.routes.url_helpers.sign_in_verification_url(
     Rails.application.config.action_mailer.default_url_options
   )
 end

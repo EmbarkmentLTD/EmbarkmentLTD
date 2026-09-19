@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 24px; border-radius: 0 0 10px 10px; }
+    .code { font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 8px; background: #fff; padding: 16px; border: 2px dashed #10b981; text-align: center; margin: 20px 0; border-radius: 10px; }
+    .button { background: #10b981; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>EmbarkmentLTD</h1>
+      <h2>Your Sign-In Code</h2>
+    </div>
+
+    <div class="content">
+      <p>Hello <strong><%= @user.name %></strong>,</p>
+      <p>Use this 6-digit code to finish signing in:</p>
+
+      <div class="code"><%= @sign_in_code %></div>
+
+      <p>This code expires in 10 minutes.</p>
+
+      <p style="text-align: center; margin: 24px 0;">
+        <a href="<%= @sign_in_verification_url %>" class="button">Enter Sign-In Code</a>
+      </p>
+
+      <p>If you did not try to sign in, you can ignore this email.</p>
+      <p>Best regards,<br/>EmbarkmentLTD Team</p>
+    </div>
+  </div>
+</body>
+</html>
