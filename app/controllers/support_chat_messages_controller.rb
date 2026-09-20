@@ -18,14 +18,14 @@ class SupportChatMessagesController < ApplicationController
     other_user = User.find_by(id: other_user_id)
 
     unless other_user
-      fallback_contact = current_user.chat_contact_options.where(role: [ "support", "admin" ]).order(:id).first
+      fallback_contact = current_user.chat_contact_options.order(:id).first
       if fallback_contact.present?
         messages = SupportMessage.between(current_user, fallback_contact).order(created_at: :asc)
         messages.where(receiver: current_user, read_at: nil).update_all(read_at: Time.current)
 
         render json: {
           success: true,
-          message: "Selected contact was unavailable. Showing support conversation.",
+          message: "Selected contact is unavailable. Showing your most recent available conversation.",
           other_user: {
             id: fallback_contact.id,
             name: fallback_contact.name,
@@ -58,9 +58,9 @@ class SupportChatMessagesController < ApplicationController
 
       render json: {
         success: false,
-        message: "Selected contact was not found.",
+        message: "Unable to open that conversation right now. Please reselect a contact.",
         messages: []
-      }, status: :not_found
+      }
       return
     end
 
