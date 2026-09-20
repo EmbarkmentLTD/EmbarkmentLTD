@@ -99,18 +99,25 @@
                 ].compact.join("\n") %>
 
                 <% whatsapp_message = [
-                    "Hello EmbarkmentLTD! I would like a quotation for:",
-                    items_list,
-                    "Total: #{number_to_currency(total_price, unit: "£")}",
+                    "Hello Embarkment Team,",
                     "",
-                    (contact_lines.any? ? "Contact Information" : nil),
+                    "I would like to request a quotation.",
+                    "",
+                    "Quotation Items:",
+                    items_list,
+                    "",
+                    "Total: #{number_to_currency(total_price, unit: "£")}",
+                    (contact_lines.any? ? "" : nil),
+                    (contact_lines.any? ? "Contact Information:" : nil),
                     (contact_lines.any? ? contact_lines.join("\n") : nil),
                     (delivery_lines.any? ? "" : nil),
-                    (delivery_lines.any? ? "Delivery Information" : nil),
+                    (delivery_lines.any? ? "Delivery Information:" : nil),
                     (delivery_lines.any? ? delivery_lines.join("\n") : nil),
                     (order_lines.any? ? "" : nil),
-                    (order_lines.any? ? "Additional Information" : nil),
-                    (order_lines.any? ? order_lines.join("\n") : nil)
+                    (order_lines.any? ? "Additional Information:" : nil),
+                    (order_lines.any? ? order_lines.join("\n") : nil),
+                    "",
+                    "Thank you."
                 ].compact.join("\n") %>
 
         <div class="grid md:grid-cols-2 gap-6">
@@ -180,7 +187,7 @@
         clearQuotationCart();
         const message = `<%= j(whatsapp_message) %>`;
         const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/447944294761?text=${encodedMessage}`;
+        const whatsappUrl = `https://wa.me/447543536751?text=${encodedMessage}`;
 
         window.open(whatsappUrl, '_blank');
     }

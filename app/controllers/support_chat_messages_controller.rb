@@ -14,13 +14,34 @@ class SupportChatMessagesController < ApplicationController
   end
 
   def conversations
-    other_user = User.find(params[:id])
+    other_user = User.find_by(id: params[:id])
+
+    unless other_user
+      render json: {
+        success: false,
+        message: "Selected contact was not found.",
+        messages: []
+      }, status: :not_found
+      return
+    end
 
     unless current_user.can_chat_with?(other_user)
       render json: {
         success: false,
-        message: "You cannot access this conversation yet."
-      }, status: :forbidden
+        access_denied: true,
+        message: "This conversation needs support approval before history is available.",
+        other_user: {
+          id: other_user.id,
+          name: other_user.name,
+          role: other_user.role
+        },
+        current_user: {
+          id: current_user.id,
+          name: current_user.name,
+          role: current_user.role
+        },
+        messages: []
+      }
       return
     end
 

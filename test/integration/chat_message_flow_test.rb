@@ -99,6 +99,37 @@ class ChatMessageFlowTest < ActionDispatch::IntegrationTest
     assert SupportMessage.exists?(sender: @admin, receiver: @buyer, message: "Admin update")
   end
 
+  test "buyer can load conversation history with support" do
+    login_as(@buyer)
+
+    SupportMessage.create!(
+      sender: @buyer,
+      receiver: @support,
+      message: "Need pricing details"
+    )
+
+    get support_chat_conversation_path(@support), as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal true, body["success"]
+    assert_equal @support.id, body.dig("other_user", "id")
+    assert_equal @buyer.id, body.dig("current_user", "id")
+    assert body["messages"].any?
+  end
+
+  test "buyer loading supplier conversation without approval returns guidance" do
+    login_as(@buyer)
+
+    get support_chat_conversation_path(@seller), as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal false, body["success"]
+    assert_equal true, body["access_denied"]
+    assert_includes body["message"], "support approval"
+  end
+
   private
 
   def login_as(user)

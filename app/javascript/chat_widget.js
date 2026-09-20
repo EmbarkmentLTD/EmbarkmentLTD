@@ -231,7 +231,12 @@ function initializeChatWidget() {
       if (isUserSelected) {
         // Clear and load conversation
         clearChatMessages();
-        loadConversation(this.value);
+        if (requiresApproval) {
+          const contactLabel = selectedOption?.text || 'this contact';
+          addMessage(`Chat access with ${contactLabel} needs support approval first. Send one message to request approval, or message support now.`, 'bot');
+        } else {
+          loadConversation(this.value);
+        }
         
         // Focus on input
         setTimeout(() => {
@@ -367,13 +372,21 @@ function initializeChatWidget() {
       .then(async response => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to load conversation');
+          const fallbackText = response.status === 404
+            ? 'Selected contact was not found.'
+            : 'Failed to load conversation';
+          throw new Error(data.message || fallbackText);
         }
         return data;
       })
       .then(data => {
         loadingDiv.remove();
         clearChatMessages();
+
+        if (data.access_denied) {
+          addMessage(data.message || 'This conversation needs support approval first.', 'bot');
+          return;
+        }
         
         addMessage(`Chatting with ${data.other_user.name}`, 'bot');
         
