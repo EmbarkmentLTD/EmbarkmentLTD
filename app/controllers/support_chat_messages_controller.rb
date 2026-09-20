@@ -14,7 +14,8 @@ class SupportChatMessagesController < ApplicationController
   end
 
   def conversations
-    other_user = User.find_by(id: params[:id])
+    other_user_id = params[:id].to_s[/\d+/]
+    other_user = User.find_by(id: other_user_id)
 
     unless other_user
       render json: {

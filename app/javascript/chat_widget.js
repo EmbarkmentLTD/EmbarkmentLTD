@@ -354,6 +354,12 @@ function initializeChatWidget() {
   // Function to load conversation
   function loadConversation(userId) {
     if (!chatMessages) return;
+
+    const normalizedUserId = String(userId || '').trim();
+    if (!/^\d+$/.test(normalizedUserId)) {
+      addMessage('Please choose a valid contact from the list.', 'bot');
+      return;
+    }
     
     const loadingDiv = document.createElement('div');
     loadingDiv.className = 'flex justify-start';
@@ -368,7 +374,7 @@ function initializeChatWidget() {
     `;
     chatMessages.appendChild(loadingDiv);
 
-    fetch(`/support_chat_messages/conversations/${userId}.json`)
+    fetch(`/support_chat_messages/conversations/${normalizedUserId}.json`)
       .then(async response => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
