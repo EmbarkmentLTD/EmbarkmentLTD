@@ -20,21 +20,30 @@
             </div>
             <% end %>
 
-            <%= form_with url: sign_in_verification_path, method: :post, class: "space-y-6" do %>
+            <%= form_with url: sign_in_verification_path, method: :post, class: "space-y-6", id: "sign-in-code-form" do %>
             <div>
                 <label class="block text-center text-sm font-medium text-gray-700 mb-2">
                     6-Digit Verification Code
                 </label>
-                <div class="flex justify-center">
-                    <input type="text" name="sign_in_code" maxlength="6" pattern="\d{6}" required
-                           class="text-center text-3xl font-bold tracking-widest px-4 py-3 w-48 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                           placeholder="000000" autocomplete="one-time-code" autofocus>
+                <input type="hidden" name="sign_in_code" id="sign_in_code_hidden" value="">
+                <div class="flex justify-center gap-2" id="otp-inputs" data-submit-on-complete="true">
+                    <% 6.times do |i| %>
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        maxlength="1"
+                        class="otp-digit text-center text-2xl font-bold w-11 h-12 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        autocomplete="one-time-code"
+                        <%= i.zero? ? "autofocus" : "" %>
+                    >
+                    <% end %>
                 </div>
                 <p class="text-xs text-gray-500 mt-2 text-center">
                     This code can only be used once and expires in 10 minutes.
                 </p>
             </div>
-            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors cursor-pointer">
+            <button type="submit" id="verify-submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
                 Verify &amp; Sign In
             </button>
             <% end %>
@@ -42,7 +51,12 @@
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-500 mb-3">Didn't receive the sign-in code?</p>
                 <%= button_to "Resend Code", resend_sign_in_verification_path, method: :post,
-                    class: "text-sm text-green-600 hover:text-green-700 font-medium bg-transparent border-0 cursor-pointer underline" %>
+                    id: "resend-code-button",
+                    class: "text-sm text-green-600 hover:text-green-700 font-medium bg-transparent border-0 cursor-pointer underline disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed",
+                    disabled: (@resend_available_in || 0) > 0 %>
+                <p class="text-xs text-gray-500 mt-2 <%= (@resend_available_in || 0) > 0 ? '' : 'hidden' %>" id="resend-countdown" data-remaining="<%= @resend_available_in || 0 %>">
+                    You can request a new code in <span id="resend-seconds"><%= @resend_available_in || 0 %></span>s.
+                </p>
             </div>
 
             <div class="mt-4 text-center">
@@ -51,3 +65,101 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function() {
+        const form = document.getElementById('sign-in-code-form');
+        if (!form || form.dataset.bound === 'true') return;
+        form.dataset.bound = 'true';
+
+        const digits = Array.from(form.querySelectorAll('.otp-digit'));
+        const hidden = document.getElementById('sign_in_code_hidden');
+        const submit = document.getElementById('verify-submit');
+        const resendCountdown = document.getElementById('resend-countdown');
+        const resendSeconds = document.getElementById('resend-seconds');
+        const resendButton = document.getElementById('resend-code-button');
+
+        function currentCode() {
+            return digits.map((el) => el.value.replace(/\D/g, '')).join('');
+        }
+
+        function updateSubmitState() {
+            const code = currentCode();
+            if (hidden) hidden.value = code;
+            if (submit) submit.disabled = code.length !== 6;
+        }
+
+        function focusIndex(idx) {
+            if (!digits[idx]) return;
+            digits[idx].focus();
+            digits[idx].select();
+        }
+
+        digits.forEach((input, idx) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? value[value.length - 1] : '';
+
+                if (e.target.value && idx < digits.length - 1) {
+                    focusIndex(idx + 1);
+                }
+
+                updateSubmitState();
+
+                if (currentCode().length === 6) {
+                    form.requestSubmit();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && idx > 0) {
+                    focusIndex(idx - 1);
+                }
+
+                if (e.key === 'ArrowLeft' && idx > 0) {
+                    e.preventDefault();
+                    focusIndex(idx - 1);
+                }
+
+                if (e.key === 'ArrowRight' && idx < digits.length - 1) {
+                    e.preventDefault();
+                    focusIndex(idx + 1);
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                if (!pasted) return;
+
+                e.preventDefault();
+                digits.forEach((el, i) => {
+                    el.value = pasted[i] || '';
+                });
+
+                updateSubmitState();
+                if (pasted.length < 6) {
+                    focusIndex(pasted.length);
+                }
+            });
+        });
+
+        updateSubmitState();
+
+        if (resendCountdown && resendSeconds && resendButton) {
+            let remaining = parseInt(resendCountdown.dataset.remaining || '0', 10);
+            if (Number.isFinite(remaining) && remaining > 0) {
+                const timer = setInterval(() => {
+                    remaining -= 1;
+                    if (remaining <= 0) {
+                        clearInterval(timer);
+                        resendCountdown.classList.add('hidden');
+                        resendButton.disabled = false;
+                        return;
+                    }
+
+                    resendSeconds.textContent = String(remaining);
+                }, 1000);
+            }
+        }
+    })();
+</script>

@@ -24,6 +24,7 @@ class SignInVerificationFlowTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_equal @user.id, session["pending_sign_in_id"].to_i
     assert_not_nil session["pending_sign_in_code"]
+    assert_nil flash[:notice]
 
     code = session["pending_sign_in_code"]
 

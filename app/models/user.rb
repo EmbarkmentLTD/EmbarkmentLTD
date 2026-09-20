@@ -115,8 +115,7 @@ class User < ApplicationRecord
   end
 
   def can_use_chat_widget?
-    return true if admin? || support?
-    return email_verified? if buyer? || supplier?
+    return true if admin? || support? || buyer? || supplier?
 
     false
   end

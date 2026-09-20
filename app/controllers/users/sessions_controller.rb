@@ -16,7 +16,6 @@ class Users::SessionsController < Devise::SessionsController
       # DO NOT sign in yet - wait for verification code confirmation
       UserMailer.sign_in_code(resource).deliver_later
 
-      set_flash_message!(:notice, :signed_in) if is_flashing_format?
       respond_with resource, location: sign_in_verification_path
       return
     end

@@ -1,14 +1,17 @@
 class SignInVerificationsController < ApplicationController
+  RESEND_COOLDOWN_SECONDS = 60
+
   skip_before_action :check_verification, raise: false
   skip_before_action :verify_authenticity_token, only: [ :create, :resend ], raise: false, prepend: true
 
   before_action :load_pending_user
 
   def show
+    @resend_available_in = resend_available_in_seconds
   end
 
   def create
-    submitted_code = params[:sign_in_code].to_s
+    submitted_code = params[:sign_in_code].to_s.gsub(/\D/, "")
 
     # verify_sign_in_code now marks code as used (one-time) before returning true
     if @user.verify_sign_in_code(submitted_code)
@@ -24,11 +27,18 @@ class SignInVerificationsController < ApplicationController
       end
     else
       flash.now[:alert] = "Invalid or expired code. Please try again."
+      @resend_available_in = resend_available_in_seconds
       render :show, status: :unprocessable_entity
     end
   end
 
   def resend
+    cooldown = resend_available_in_seconds
+    if cooldown > 0
+      redirect_to sign_in_verification_path, alert: "Please wait #{cooldown}s before requesting another code."
+      return
+    end
+
     session[:pending_sign_in_code] = @user.generate_sign_in_code
     UserMailer.sign_in_code(@user).deliver_later
     redirect_to sign_in_verification_path, notice: "A new code has been sent to your email."
@@ -43,16 +53,17 @@ class SignInVerificationsController < ApplicationController
     @user = User.find_by(id: session[:pending_sign_in_id])
     @user ||= current_user if user_signed_in?
 
-    if @user.nil? && params[:sign_in_code].present?
-      @user = User.where.not(sign_in_code: [ nil, "" ]).find do |candidate|
-        candidate.verify_sign_in_code(params[:sign_in_code])
-      end
-      session[:pending_sign_in_id] = @user.id if @user
-    end
-
     unless @user
       redirect_to new_user_session_path, alert: "Session expired. Please sign in again."
       nil
     end
+  end
+
+  def resend_available_in_seconds
+    return 0 unless @user&.sign_in_code_sent_at
+
+    elapsed = Time.current - @user.sign_in_code_sent_at
+    remaining = RESEND_COOLDOWN_SECONDS - elapsed
+    remaining.positive? ? remaining.ceil : 0
   end
 end
