@@ -389,6 +389,10 @@ function initializeChatWidget() {
         loadingDiv.remove();
         clearChatMessages();
 
+        if (data.message) {
+          addMessage(data.message, 'bot');
+        }
+
         if (data.access_denied) {
           addMessage(data.message || 'This conversation needs support approval first.', 'bot');
           return;
