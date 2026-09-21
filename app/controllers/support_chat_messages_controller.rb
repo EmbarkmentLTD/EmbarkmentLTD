@@ -3,7 +3,7 @@ class SupportChatMessagesController < ApplicationController
   include RateLimitable
   rate_limit max: 10, within: 1.hour
   before_action :enforce_rate_limit
-  before_action :authenticate_user!, only: [ :conversations ]
+  before_action :authenticate_user!, only: [ :conversations, :unread_counts ]
 
   def create
     if user_signed_in?
@@ -115,6 +115,29 @@ class SupportChatMessagesController < ApplicationController
           read_at: m.read_at
         }
       }
+    }
+  end
+
+  def unread_counts
+    contact_ids = current_user.chat_contact_options.pluck(:id)
+
+    unread_scope = SupportMessage.where(
+      receiver_id: current_user.id,
+      receiver_type: "User",
+      sender_type: "User",
+      read_at: nil
+    )
+
+    unread_scope = unread_scope.where(sender_id: contact_ids) if contact_ids.any?
+
+    unread_by_sender = unread_scope.group(:sender_id).count
+    latest_unread_sender_id = unread_scope.order(created_at: :desc).limit(1).pluck(:sender_id).first
+
+    render json: {
+      success: true,
+      total_unread: unread_by_sender.values.sum,
+      unread_by_sender: unread_by_sender,
+      latest_unread_sender_id: latest_unread_sender_id
     }
   end
 

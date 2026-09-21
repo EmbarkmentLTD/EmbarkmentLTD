@@ -130,6 +130,53 @@ class ChatMessageFlowTest < ActionDispatch::IntegrationTest
     assert_includes body["message"], "support approval"
   end
 
+  test "recipient can recall and read a newly sent support message" do
+    login_as(@buyer)
+
+    post support_chat_messages_path, params: {
+      receiver_id: @support.id,
+      message: "Please confirm my shipment ETA"
+    }, as: :json
+
+    assert_response :success
+    sender_body = JSON.parse(response.body)
+    assert_equal true, sender_body["success"]
+
+    # Switch session to recipient and confirm conversation can be loaded.
+    delete destroy_user_session_path
+    login_as(@support)
+
+    get support_chat_conversation_path(@buyer), as: :json
+
+    assert_response :success
+    recipient_body = JSON.parse(response.body)
+    assert_equal true, recipient_body["success"]
+    assert_equal @buyer.id, recipient_body.dig("other_user", "id")
+    assert recipient_body["messages"].any? { |m| m["message"] == "Please confirm my shipment ETA" }
+  end
+
+  test "recipient unread counts include sender for chat widget discovery" do
+    login_as(@buyer)
+
+    post support_chat_messages_path, params: {
+      receiver_id: @support.id,
+      message: "Need help with a delayed delivery"
+    }, as: :json
+    assert_response :success
+
+    delete destroy_user_session_path
+    login_as(@support)
+
+    get support_chat_unread_counts_path, as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal true, body["success"]
+    assert body["total_unread"].to_i >= 1
+    assert_equal @buyer.id, body["latest_unread_sender_id"]
+    assert body.fetch("unread_by_sender", {}).key?(@buyer.id.to_s)
+  end
+
   private
 
   def login_as(user)

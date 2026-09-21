@@ -12,6 +12,7 @@ function initializeChatWidget() {
   const chatInput = document.getElementById('chat-input');
   const chatMessages = document.getElementById('chat-messages');
   const approvalHint = document.getElementById('chat-approval-hint');
+  let latestUnreadSenderId = null;
   let isSubmitting = false;
 
   // Draggable functionality - SIMPLIFIED VERSION
@@ -188,6 +189,14 @@ function initializeChatWidget() {
           
           // Update unread counts
           updateAllUnreadBadges();
+
+          if (userSelect && !userSelect.value && latestUnreadSenderId) {
+            const unreadOption = Array.from(userSelect.options).find((opt) => opt.value === String(latestUnreadSenderId));
+            if (unreadOption) {
+              userSelect.value = String(latestUnreadSenderId);
+              userSelect.dispatchEvent(new Event('change'));
+            }
+          }
         }
         
         e.stopPropagation();
@@ -488,15 +497,12 @@ function initializeChatWidget() {
     // Only update if user is signed in
     const userId = document.querySelector('meta[name="current-user-id"]')?.content;
     if (!userId) return;
-    const role = document.querySelector('meta[name="current-user-role"]')?.content;
 
-    // Only support/admin can read /support/dashboard.json.
-    if (role !== 'support' && role !== 'admin') return;
-    
-    fetch('/support/dashboard.json')
+    fetch('/support_chat_messages/unread_counts')
       .then(response => response.json())
       .then(data => {
-        const totalUnread = data.total_unread_for_current_user || data.current_user_unread || 0;
+        const totalUnread = data.total_unread || 0;
+        latestUnreadSenderId = data.latest_unread_sender_id || null;
         
         // Update toggle button badge
         const toggleBadge = document.getElementById('chat-toggle-badge');
@@ -535,20 +541,22 @@ function initializeChatWidget() {
         
         // Update user dropdown
         const userSelect = document.getElementById('support-user-select');
-        if (userSelect && data.unread_counts) {
+        if (userSelect && data.unread_by_sender) {
           Array.from(userSelect.options).forEach(option => {
-            if (option.value && data.unread_counts[option.value]) {
-              const unreadCount = data.unread_counts[option.value];
-              const name = option.text.split('(')[0].trim();
-              if (unreadCount > 0) {
-                option.text = `${name} (${unreadCount} unread)`;
-                option.style.color = '#dc2626';
-                option.style.fontWeight = '600';
-              } else {
-                option.text = name;
-                option.style.color = '';
-                option.style.fontWeight = '';
-              }
+            if (!option.value) return;
+
+            const baseLabel = option.dataset.baseLabel || option.text;
+            option.dataset.baseLabel = baseLabel;
+
+            const unreadCount = data.unread_by_sender[option.value] || 0;
+            if (unreadCount > 0) {
+              option.text = `${baseLabel} (${unreadCount} unread)`;
+              option.style.color = '#dc2626';
+              option.style.fontWeight = '600';
+            } else {
+              option.text = baseLabel;
+              option.style.color = '';
+              option.style.fontWeight = '';
             }
           });
         }
