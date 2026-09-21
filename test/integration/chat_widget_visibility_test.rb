@@ -49,4 +49,28 @@ class ChatWidgetVisibilityTest < ActionDispatch::IntegrationTest
     assert_equal true, JSON.parse(response.body)["success"]
     assert_equal before_count + 1, SupportMessage.count
   end
+
+  test "chat widget is hidden on verification page for signed-in unverified user" do
+    suffix = SecureRandom.hex(4)
+    unverified_buyer = User.create!(
+      name: "Unverified Buyer",
+      email: "buyer.unverified.#{suffix}@gmail.com",
+      password: "Password123!",
+      password_confirmation: "Password123!",
+      role: "buyer",
+      location: "Lagos"
+    )
+
+    post "/login", params: { user: { email: unverified_buyer.email, password: "Password123!" } }
+    assert_includes [ 200, 302, 303 ], response.status
+
+    unverified_buyer.reload
+    code = unverified_buyer.generate_sign_in_code
+    post "/sign_in_verification", params: { sign_in_code: code }
+    assert_redirected_to verification_path
+
+    get "/verify"
+    assert_response :success
+    assert_not_includes response.body, "id=\"chat-widget\""
+  end
 end

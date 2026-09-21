@@ -260,7 +260,6 @@ function initializeChatWidget() {
       
       // Validation
       if (!message || message.length === 0) {
-        alert('Please type a message before sending.');
         if (chatInput) {
           chatInput.focus();
           chatInput.style.borderColor = 'red';
@@ -272,7 +271,6 @@ function initializeChatWidget() {
       }
 
       if (userSelect && !userSelect.value) {
-        alert('Please select a user to chat with.');
         if (userSelect) userSelect.focus();
         return;
       }
@@ -300,8 +298,7 @@ function initializeChatWidget() {
         if (!response.ok) {
           return {
             success: false,
-            requires_approval: !!data.requires_approval,
-            message: data.message || `Server error: ${response.status}`
+            requires_approval: !!data.requires_approval
           };
         }
         return data;
@@ -330,14 +327,11 @@ function initializeChatWidget() {
           }
         } else if (data.requires_approval) {
           addMessage(data.message || "This chat requires support approval first.", 'bot');
-        } else {
-          addMessage(data.message || "Failed to send message.", 'bot');
         }
       })
       .catch(error => {
         console.error('Error:', error);
         typingIndicator.remove();
-        addMessage("Sorry, there was an error sending your message.", 'bot');
       })
       .finally(() => {
         isSubmitting = false;
@@ -357,7 +351,6 @@ function initializeChatWidget() {
 
     const normalizedUserId = String(userId || '').trim();
     if (!/^\d+$/.test(normalizedUserId)) {
-      addMessage('Please choose a valid contact from the list.', 'bot');
       return;
     }
     
@@ -378,10 +371,7 @@ function initializeChatWidget() {
       .then(async response => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          const fallbackText = response.status === 404
-            ? 'Unable to open that conversation right now. Please reselect a contact.'
-            : 'Failed to load conversation';
-          throw new Error(data.message || fallbackText);
+          throw new Error('conversation_load_failed');
         }
         return data;
       })
@@ -415,7 +405,6 @@ function initializeChatWidget() {
       .catch(error => {
         console.error('Error loading conversation:', error);
         loadingDiv.remove();
-        addMessage(error.message || "Failed to load conversation. Please try again.", 'bot');
       });
   }
 
