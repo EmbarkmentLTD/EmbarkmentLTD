@@ -61,9 +61,8 @@ Rails.application.configure do
   # config.cache_store = :solid_cache_store
   config.cache_store = ENV["CACHE_READY"] == "true" ? :solid_cache_store : :memory_store
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  # config.active_job.queue_adapter = :solid_queue # :inline
-  config.active_job.queue_adapter = :inline unless ENV["QUEUE_DATABASE_READY"] == "true"
+  # Use Solid Queue in production once queue DB is ready; fallback to inline only during bootstrap.
+  config.active_job.queue_adapter = ENV["QUEUE_DATABASE_READY"] == "true" ? :solid_queue : :inline
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
 

@@ -33,6 +33,7 @@ class ApplicationController < ActionController::Base
   private
 
   def track_page_view
+    return unless ENV["TRACK_PAGE_VIEWS"] == "true"
     return unless request.get?
     return unless request.format.html?
     return unless PageView.table_exists?
