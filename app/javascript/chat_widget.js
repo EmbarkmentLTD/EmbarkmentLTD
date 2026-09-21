@@ -379,7 +379,7 @@ function initializeChatWidget() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           const fallbackText = response.status === 404
-            ? 'Selected contact was not found.'
+            ? 'Unable to open that conversation right now. Please reselect a contact.'
             : 'Failed to load conversation';
           throw new Error(data.message || fallbackText);
         }
@@ -389,13 +389,13 @@ function initializeChatWidget() {
         loadingDiv.remove();
         clearChatMessages();
 
-        if (data.message) {
-          addMessage(data.message, 'bot');
-        }
-
         if (data.access_denied) {
           addMessage(data.message || 'This conversation needs support approval first.', 'bot');
           return;
+        }
+
+        if (data.message) {
+          addMessage(data.message, 'bot');
         }
         
         addMessage(`Chatting with ${data.other_user.name}`, 'bot');
