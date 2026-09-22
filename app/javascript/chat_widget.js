@@ -13,6 +13,7 @@ function initializeChatWidget() {
   const chatMessages = document.getElementById('chat-messages');
   const approvalHint = document.getElementById('chat-approval-hint');
   let latestUnreadSenderId = null;
+  let unreadBySender = {};
   let isSubmitting = false;
 
   // Draggable functionality - SIMPLIFIED VERSION
@@ -190,11 +191,17 @@ function initializeChatWidget() {
           // Update unread counts
           updateAllUnreadBadges();
 
-          if (userSelect && !userSelect.value && latestUnreadSenderId) {
-            const unreadOption = Array.from(userSelect.options).find((opt) => opt.value === String(latestUnreadSenderId));
-            if (unreadOption) {
-              userSelect.value = String(latestUnreadSenderId);
-              userSelect.dispatchEvent(new Event('change'));
+          if (userSelect && latestUnreadSenderId) {
+            const selectedId = userSelect.value ? String(userSelect.value) : null;
+            const selectedUnread = selectedId ? (unreadBySender[selectedId] || 0) : 0;
+            const shouldSwitchToLatestUnread = !selectedId || selectedUnread === 0;
+
+            if (shouldSwitchToLatestUnread) {
+              const unreadOption = Array.from(userSelect.options).find((opt) => opt.value === String(latestUnreadSenderId));
+              if (unreadOption) {
+                userSelect.value = String(latestUnreadSenderId);
+                userSelect.dispatchEvent(new Event('change'));
+              }
             }
           }
         }
@@ -518,6 +525,7 @@ function initializeChatWidget() {
       .then(data => {
         const totalUnread = data.total_unread || 0;
         latestUnreadSenderId = data.latest_unread_sender_id || null;
+        unreadBySender = data.unread_by_sender || {};
         
         // Update toggle button badge
         const toggleBadge = document.getElementById('chat-toggle-badge');
@@ -563,7 +571,7 @@ function initializeChatWidget() {
             const baseLabel = option.dataset.baseLabel || option.text;
             option.dataset.baseLabel = baseLabel;
 
-            const unreadCount = data.unread_by_sender[option.value] || 0;
+            const unreadCount = unreadBySender[option.value] || 0;
             if (unreadCount > 0) {
               option.text = `${baseLabel} (${unreadCount} unread)`;
               option.style.color = '#dc2626';
