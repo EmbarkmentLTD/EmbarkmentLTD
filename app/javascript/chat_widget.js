@@ -248,9 +248,8 @@ function initializeChatWidget() {
       
       if (isUserSelected) {
         activeConversationUserId = this.value;
-        // Clear and load conversation
-        clearChatMessages();
         if (requiresApproval) {
+          clearChatMessages();
           const contactLabel = selectedOption?.text || 'this contact';
           addMessage(`Chat access with ${contactLabel} needs support approval first. Send one message to request approval, or message support now.`, 'bot');
         } else {
@@ -340,7 +339,7 @@ function initializeChatWidget() {
           // Reload conversation if user selected
           if (userSelect && userSelect.value) {
             setTimeout(() => {
-              loadConversation(userSelect.value, { showLoader: false });
+              loadConversation(userSelect.value, { showLoader: false, suppressErrors: true });
             }, 250);
           }
         } else if (data.requires_approval) {
@@ -368,6 +367,7 @@ function initializeChatWidget() {
     if (!chatMessages) return;
 
     const showLoader = options.showLoader !== false;
+    const suppressErrors = options.suppressErrors === true;
 
     const normalizedUserId = String(userId || '').trim();
     if (!/^\d+$/.test(normalizedUserId)) {
@@ -439,13 +439,13 @@ function initializeChatWidget() {
         console.error('Error loading conversation:', error);
         if (loadingDiv) loadingDiv.remove();
 
-        // Keep already-rendered messages so a transient fetch failure does not
-        // make chats appear to disappear.
-        if (!hadExistingMessages) {
-          clearChatMessages();
-          addMessage('Open the chat contact again to refresh this conversation.', 'bot');
-        } else {
-          addMessage('Conversation refresh delayed. Your visible messages are still kept.', 'bot');
+        if (suppressErrors) {
+          return;
+        }
+
+        // Never wipe chat body on refresh failure.
+        if (!hadExistingMessages && chatMessages.children.length === 0) {
+          addMessage('No previous messages. Start the conversation!', 'bot');
         }
       });
   }
@@ -532,7 +532,7 @@ function initializeChatWidget() {
       const isChatOpen = chatBox && !chatBox.classList.contains('hidden');
       if (!isChatOpen || !activeConversationUserId || isSubmitting) return;
 
-      loadConversation(activeConversationUserId, { showLoader: false });
+      loadConversation(activeConversationUserId, { showLoader: false, suppressErrors: true });
       updateAllUnreadBadges();
     }, 4000);
   }
