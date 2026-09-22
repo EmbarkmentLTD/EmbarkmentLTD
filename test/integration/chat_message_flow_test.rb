@@ -177,6 +177,18 @@ class ChatMessageFlowTest < ActionDispatch::IntegrationTest
     assert body.fetch("unread_by_sender", {}).key?(@buyer.id.to_s)
   end
 
+  test "invalid conversation target does not fall back to another contact" do
+    login_as(@buyer)
+
+    get "/support_chat_messages/conversations/999999.json", as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal false, body["success"]
+    assert_equal [], body["messages"]
+    assert_includes body["message"], "reselect"
+  end
+
   private
 
   def login_as(user)

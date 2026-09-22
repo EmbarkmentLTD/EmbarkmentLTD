@@ -14,6 +14,8 @@ function initializeChatWidget() {
   const approvalHint = document.getElementById('chat-approval-hint');
   let latestUnreadSenderId = null;
   let unreadBySender = {};
+  let activeConversationUserId = null;
+  let conversationPollIntervalId = null;
   let isSubmitting = false;
 
   // Draggable functionality - SIMPLIFIED VERSION
@@ -245,6 +247,7 @@ function initializeChatWidget() {
       }
       
       if (isUserSelected) {
+        activeConversationUserId = this.value;
         // Clear and load conversation
         clearChatMessages();
         if (requiresApproval) {
@@ -260,6 +263,7 @@ function initializeChatWidget() {
         }, 100);
       } else {
         // Clear messages if no user selected
+        activeConversationUserId = null;
         clearChatMessages();
         addWelcomeMessage();
       }
@@ -329,17 +333,15 @@ function initializeChatWidget() {
             chatInput.value = '';
             chatInput.style.height = 'auto';
           }
-          
-          addMessage("✓ Message sent!", 'bot');
-          
+
           // Update unread badges
-          setTimeout(updateAllUnreadBadges, 300);
-          
+          setTimeout(updateAllUnreadBadges, 200);
+
           // Reload conversation if user selected
           if (userSelect && userSelect.value) {
             setTimeout(() => {
-              loadConversation(userSelect.value);
-            }, 1000);
+              loadConversation(userSelect.value, { showLoader: false });
+            }, 250);
           }
         } else if (data.requires_approval) {
           addMessage(data.message || "This chat requires support approval first.", 'bot');
@@ -362,26 +364,35 @@ function initializeChatWidget() {
   }
 
   // Function to load conversation
-  function loadConversation(userId) {
+  function loadConversation(userId, options = {}) {
     if (!chatMessages) return;
+
+    const showLoader = options.showLoader !== false;
 
     const normalizedUserId = String(userId || '').trim();
     if (!/^\d+$/.test(normalizedUserId)) {
       return;
     }
+
+    activeConversationUserId = normalizedUserId;
     
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'flex justify-start';
-    loadingDiv.innerHTML = `
-      <div class="bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3">
-        <div class="flex space-x-1">
-          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+    const hadExistingMessages = chatMessages.children.length > 0;
+
+    let loadingDiv = null;
+    if (showLoader) {
+      loadingDiv = document.createElement('div');
+      loadingDiv.className = 'flex justify-start';
+      loadingDiv.innerHTML = `
+        <div class="bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3">
+          <div class="flex space-x-1">
+            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+          </div>
         </div>
-      </div>
-    `;
-    chatMessages.appendChild(loadingDiv);
+      `;
+      chatMessages.appendChild(loadingDiv);
+    }
 
     fetch(`/support_chat_messages/conversations/${normalizedUserId}.json`, {
       headers: {
@@ -404,7 +415,7 @@ function initializeChatWidget() {
         return data;
       })
       .then(data => {
-        loadingDiv.remove();
+        if (loadingDiv) loadingDiv.remove();
         clearChatMessages();
 
         if (data.access_denied) {
@@ -412,30 +423,30 @@ function initializeChatWidget() {
           return;
         }
 
-        if (data.message && typeof data.message === 'string') {
-          addMessage(data.message, 'bot');
-        }
-
-        const contactName = data?.other_user?.name || 'selected contact';
-        addMessage(`Chatting with ${contactName}`, 'bot');
-
         if (Array.isArray(data.messages) && data.messages.length > 0) {
           data.messages.forEach(msg => {
             const isCurrentUser = msg.sender.id === data.current_user.id;
             addMessage(msg.message, isCurrentUser ? 'user' : 'other');
           });
-          
-          // Update badges after loading
-          setTimeout(updateAllUnreadBadges, 300);
         } else {
           addMessage("No previous messages. Start the conversation!", 'bot');
         }
+
+        // Update badges after loading any thread.
+        setTimeout(updateAllUnreadBadges, 150);
       })
       .catch(error => {
         console.error('Error loading conversation:', error);
-        loadingDiv.remove();
-        clearChatMessages();
-        addMessage('Open the chat contact again to refresh this conversation.', 'bot');
+        if (loadingDiv) loadingDiv.remove();
+
+        // Keep already-rendered messages so a transient fetch failure does not
+        // make chats appear to disappear.
+        if (!hadExistingMessages) {
+          clearChatMessages();
+          addMessage('Open the chat contact again to refresh this conversation.', 'bot');
+        } else {
+          addMessage('Conversation refresh delayed. Your visible messages are still kept.', 'bot');
+        }
       });
   }
 
@@ -512,6 +523,25 @@ function initializeChatWidget() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
     return typingDiv;
+  }
+
+  function startConversationPolling() {
+    stopConversationPolling();
+
+    conversationPollIntervalId = setInterval(() => {
+      const isChatOpen = chatBox && !chatBox.classList.contains('hidden');
+      if (!isChatOpen || !activeConversationUserId || isSubmitting) return;
+
+      loadConversation(activeConversationUserId, { showLoader: false });
+      updateAllUnreadBadges();
+    }, 4000);
+  }
+
+  function stopConversationPolling() {
+    if (conversationPollIntervalId) {
+      clearInterval(conversationPollIntervalId);
+      conversationPollIntervalId = null;
+    }
   }
 
   // NEW FUNCTION: Update all unread badges
@@ -602,6 +632,7 @@ function initializeChatWidget() {
 
   // Initialize
   loadPosition();
+  startConversationPolling();
   
   // Add welcome message on load
   setTimeout(() => {

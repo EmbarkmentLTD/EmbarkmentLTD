@@ -18,44 +18,6 @@ class SupportChatMessagesController < ApplicationController
     other_user = User.find_by(id: other_user_id)
 
     unless other_user
-      fallback_contact = current_user.chat_contact_options.order(:id).first
-      if fallback_contact.present?
-        messages = SupportMessage.between(current_user, fallback_contact).order(created_at: :asc)
-        messages.where(receiver: current_user, read_at: nil).update_all(read_at: Time.current)
-
-        render json: {
-          success: true,
-          message: "Selected contact is unavailable. Showing your most recent available conversation.",
-          other_user: {
-            id: fallback_contact.id,
-            name: fallback_contact.name,
-            role: fallback_contact.role
-          },
-          current_user: {
-            id: current_user.id,
-            name: current_user.name,
-            role: current_user.role
-          },
-          messages: messages.map { |m|
-            {
-              id: m.id,
-              message: m.message,
-              sender: {
-                id: m.sender.id,
-                name: m.sender.name
-              },
-              receiver: {
-                id: m.receiver.id,
-                name: m.receiver.name
-              },
-              created_at: m.created_at,
-              read_at: m.read_at
-            }
-          }
-        }
-        return
-      end
-
       render json: {
         success: false,
         message: "Unable to open that conversation right now. Please reselect a contact.",
