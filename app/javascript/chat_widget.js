@@ -376,12 +376,24 @@ function initializeChatWidget() {
     `;
     chatMessages.appendChild(loadingDiv);
 
-    fetch(`/support_chat_messages/conversations/${normalizedUserId}.json`)
+    fetch(`/support_chat_messages/conversations/${normalizedUserId}.json`, {
+      headers: {
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    })
       .then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+
+        if (response.redirected || !contentType.includes('application/json')) {
+          throw new Error('conversation_payload_invalid');
+        }
+
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error('conversation_load_failed');
+          throw new Error(data.message || 'conversation_load_failed');
         }
+
         return data;
       })
       .then(data => {
@@ -393,13 +405,14 @@ function initializeChatWidget() {
           return;
         }
 
-        if (data.message) {
+        if (data.message && typeof data.message === 'string') {
           addMessage(data.message, 'bot');
         }
-        
-        addMessage(`Chatting with ${data.other_user.name}`, 'bot');
-        
-        if (data.messages && data.messages.length > 0) {
+
+        const contactName = data?.other_user?.name || 'selected contact';
+        addMessage(`Chatting with ${contactName}`, 'bot');
+
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
           data.messages.forEach(msg => {
             const isCurrentUser = msg.sender.id === data.current_user.id;
             addMessage(msg.message, isCurrentUser ? 'user' : 'other');
@@ -414,6 +427,8 @@ function initializeChatWidget() {
       .catch(error => {
         console.error('Error loading conversation:', error);
         loadingDiv.remove();
+        clearChatMessages();
+        addMessage('Open the chat contact again to refresh this conversation.', 'bot');
       });
   }
 
