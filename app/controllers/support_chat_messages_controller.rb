@@ -165,8 +165,13 @@ class SupportChatMessagesController < ApplicationController
 
     if @message.persisted?
       if receiver.support? || receiver.admin?
-        Rails.logger.info("Chat message create: sending email to #{receiver.id}")
+        # Customer sent to support - notify support of new message
+        Rails.logger.info("Chat message create: sending new_support_message to #{receiver.id}")
         AdminMailer.new_support_message(receiver, @message).deliver_later
+      elsif current_user.support? || current_user.admin?
+        # Support sent to customer - notify customer of support reply
+        Rails.logger.info("Chat message create: sending support_reply to #{receiver.id}")
+        AdminMailer.support_reply(receiver, @message).deliver_later
       end
 
       render json: {
