@@ -17,6 +17,8 @@ class SupportChatMessagesController < ApplicationController
     other_user_id = params[:id].to_s[/\d+/]
     other_user = User.find_by(id: other_user_id)
 
+    Rails.logger.info("Chat conversations: current_user=#{current_user.id}, other_user_id=#{other_user_id}, found=#{other_user&.id}")
+
     unless other_user
       render json: {
         success: false,
@@ -27,6 +29,7 @@ class SupportChatMessagesController < ApplicationController
     end
 
     unless current_user.can_chat_with?(other_user)
+      Rails.logger.warn("Chat not allowed: #{current_user.id} cannot chat with #{other_user.id}")
       render json: {
         success: false,
         access_denied: true,
@@ -47,6 +50,7 @@ class SupportChatMessagesController < ApplicationController
     end
 
     messages = SupportMessage.between(current_user, other_user).order(created_at: :asc)
+    Rails.logger.info("Chat messages loaded: current_user=#{current_user.id}, other_user=#{other_user.id}, count=#{messages.count}")
     messages.where(receiver: current_user, read_at: nil).update_all(read_at: Time.current)
 
     render json: {
@@ -116,7 +120,10 @@ class SupportChatMessagesController < ApplicationController
     end
 
     receiver = find_receiver_for_logged_in_user
+    Rails.logger.info("Chat message create: sender=#{current_user.id}, receiver=#{receiver&.id}, text_length=#{message_text.length}")
+
     unless receiver
+      Rails.logger.warn("Chat message create: receiver not found for user #{current_user.id}")
       render json: {
         success: false,
         message: "Please select who you want to chat with."
@@ -125,6 +132,7 @@ class SupportChatMessagesController < ApplicationController
     end
 
     if current_user.needs_support_approval_for_chat_with?(receiver) && !current_user.can_chat_with?(receiver)
+      Rails.logger.info("Chat message create: approval required for #{current_user.id} → #{receiver.id}")
       request = ChatAccessRequest.find_or_create_by(requester: current_user, target: receiver)
       request.update!(status: "pending") unless request.pending?
 
@@ -137,6 +145,7 @@ class SupportChatMessagesController < ApplicationController
     end
 
     unless current_user.can_chat_with?(receiver)
+      Rails.logger.warn("Chat message create: not allowed for #{current_user.id} → #{receiver.id}")
       render json: {
         success: false,
         message: "You are not allowed to chat with this contact yet."
@@ -152,8 +161,11 @@ class SupportChatMessagesController < ApplicationController
       updated_at: Time.current
     )
 
+    Rails.logger.info("Chat message create result: id=#{@message.id}, persisted=#{@message.persisted?}, errors=#{@message.errors.full_messages.join(', ')}")
+
     if @message.persisted?
       if receiver.support? || receiver.admin?
+        Rails.logger.info("Chat message create: sending email to #{receiver.id}")
         AdminMailer.new_support_message(receiver, @message).deliver_later
       end
 

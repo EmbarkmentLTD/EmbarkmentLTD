@@ -303,6 +303,13 @@ function initializeChatWidget() {
       if (sendButton) sendButton.disabled = true;
 
       const typingIndicator = addTypingIndicator();
+      const selectedUserId = userSelect?.value;
+      
+      console.log('Sending message:', {
+        message: message,
+        receiverId: selectedUserId,
+        action: this.action
+      });
       
       fetch(this.action, {
         method: 'POST',
@@ -313,11 +320,22 @@ function initializeChatWidget() {
         }
       })
       .then(async response => {
-        const data = await response.json().catch(() => ({}));
+        const data = await response.json().catch((err) => {
+          console.error('Failed to parse response JSON:', err);
+          return {};
+        });
+        
+        console.log('Message send response:', {
+          status: response.status,
+          ok: response.ok,
+          data
+        });
+        
         if (!response.ok) {
           return {
             success: false,
-            requires_approval: !!data.requires_approval
+            requires_approval: !!data.requires_approval,
+            message: data.message
           };
         }
         return data;
@@ -326,6 +344,7 @@ function initializeChatWidget() {
         typingIndicator.remove();
 
         if (data.success) {
+          console.log('Message sent successfully, adding to UI');
           addMessage(message, 'user');
           
           if (chatInput) {
@@ -338,17 +357,23 @@ function initializeChatWidget() {
 
           // Reload conversation if user selected
           if (userSelect && userSelect.value) {
+            console.log('Loading conversation for user:', userSelect.value);
             setTimeout(() => {
               loadConversation(userSelect.value, { showLoader: false, suppressErrors: true });
             }, 250);
           }
         } else if (data.requires_approval) {
+          console.log('Message requires approval');
           addMessage(data.message || "This chat requires support approval first.", 'bot');
+        } else {
+          console.error('Message send failed:', data.message);
+          addMessage('Failed to send message: ' + (data.message || 'Unknown error'), 'bot');
         }
       })
       .catch(error => {
-        console.error('Error:', error);
+        console.error('Error sending message:', error);
         typingIndicator.remove();
+        addMessage('Error sending message. Please try again.', 'bot');
       })
       .finally(() => {
         isSubmitting = false;
@@ -377,6 +402,8 @@ function initializeChatWidget() {
     activeConversationUserId = normalizedUserId;
     
     const hadExistingMessages = chatMessages.children.length > 0;
+    // CRITICAL FIX: Save existing messages before clearing, in case fetch fails
+    const savedMessages = Array.from(chatMessages.children).map(el => el.cloneNode(true));
 
     let loadingDiv = null;
     if (showLoader) {
@@ -404,11 +431,17 @@ function initializeChatWidget() {
         const contentType = response.headers.get('content-type') || '';
 
         if (response.redirected || !contentType.includes('application/json')) {
+          console.warn('Response redirected or not JSON:', { redirected: response.redirected, contentType });
           throw new Error('conversation_payload_invalid');
         }
 
-        const data = await response.json().catch(() => ({}));
+        const data = await response.json().catch((parseErr) => {
+          console.error('Failed to parse JSON:', parseErr);
+          return {};
+        });
+        
         if (!response.ok) {
+          console.error('Response not OK:', { status: response.status, data });
           throw new Error(data.message || 'conversation_load_failed');
         }
 
@@ -439,7 +472,14 @@ function initializeChatWidget() {
         console.error('Error loading conversation:', error);
         if (loadingDiv) loadingDiv.remove();
 
+        // CRITICAL FIX: If fetch failed with suppressErrors, restore saved messages
         if (suppressErrors) {
+          // Restore the messages that were there before (including optimistic message)
+          clearChatMessages();
+          savedMessages.forEach(msgEl => {
+            chatMessages.appendChild(msgEl);
+          });
+          console.log('Restored', savedMessages.length, 'messages due to fetch failure');
           return;
         }
 
