@@ -416,6 +416,7 @@
     <!--------------------------------- Draggable Floating Quick Chat Widget ------------------->
     <% if user_signed_in? && current_user.can_use_chat_widget? && !request.path.start_with?('/verify', '/sign_in_verification') %>
       <%= render 'shared/chat_widget' %>
+      <%= render 'shared/chat_widget_debug' %>
     <% end %>
     <!--------------------------------- End of Chat Widget ------------------->
 

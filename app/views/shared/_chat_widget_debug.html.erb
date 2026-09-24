@@ -1,0 +1,46 @@
+<!-- Debug chat widget state - Add to _chat_widget.html.erb after chat widget div -->
+<script>
+  // Run after page fully loads
+  document.addEventListener('DOMContentLoaded', function() {
+    // Create a global debug function
+    window.debugChatWidget = function() {
+      const chatWidget = document.getElementById('chat-widget');
+      const chatBox = document.getElementById('chat-box');
+      const chatMessages = document.getElementById('chat-messages');
+      const chatInput = document.getElementById('chat-input');
+      const userSelect = document.getElementById('support-user-select');
+      
+      console.log('\n===== CHAT WIDGET DEBUG INFO =====');
+      console.log('Chat Widget Found:', !!chatWidget);
+      console.log('Chat Box Found:', !!chatBox);
+      console.log('Chat Box Visible (hidden class):', chatBox?.classList.contains('hidden'));
+      console.log('Chat Box Display:', window.getComputedStyle(chatBox)?.display);
+      console.log('Chat Box offsetHeight:', chatBox?.offsetHeight);
+      console.log('Chat Messages Found:', !!chatMessages);
+      console.log('Chat Messages Children Count:', chatMessages?.children.length || 0);
+      console.log('Chat Input Found:', !!chatInput);
+      console.log('Chat Input Disabled:', chatInput?.disabled);
+      console.log('User Select Found:', !!userSelect);
+      console.log('User Select Options Count:', userSelect?.options.length || 0);
+      
+      if (userSelect) {
+        console.log('\n--- DROPDOWN OPTIONS ---');
+        Array.from(userSelect.options).forEach((opt, idx) => {
+          console.log(`  Option ${idx}: value="${opt.value}", text="${opt.text}"`);
+        });
+      }
+      
+      if (chatMessages) {
+        console.log('\n--- CHAT MESSAGES DOM ---');
+        console.log('Chat Messages HTML Length:', chatMessages.innerHTML.length);
+        console.log('Chat Messages HTML (first 500 chars):', chatMessages.innerHTML.substring(0, 500));
+        console.log('Chat Messages Visible:', chatMessages.offsetHeight > 0);
+      }
+      
+      console.log('===== END DEBUG INFO =====\n');
+    };
+    
+    // Also make it accessible from console
+    console.log('[DEBUG] Run window.debugChatWidget() to see chat widget state');
+  });
+</script>
