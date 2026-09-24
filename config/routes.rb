@@ -62,8 +62,8 @@ Rails.application.routes.draw do
 
   # Support Chat Routes
   post "/support_chat_messages", to: "support_chat_messages#create"
-  get "/support_chat_messages/conversations/:id(.json)", to: "support_chat_messages#conversations", as: "support_chat_conversation", format: "json"
-  get "/support_chat_messages/unread_counts(.json)", to: "support_chat_messages#unread_counts", as: "support_chat_unread_counts", format: "json"
+  get "/support_chat_messages/conversations/:id", to: "support_chat_messages#conversations", as: "support_chat_conversation"
+  get "/support_chat_messages/unread_counts", to: "support_chat_messages#unread_counts", as: "support_chat_unread_counts"
 
   # Support Dashboard Routes - FIXED: Remove namespace and use simple routes
   get "/support/dashboard", to: "support_dashboard#index", as: "support_dashboard"

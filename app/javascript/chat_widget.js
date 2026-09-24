@@ -438,9 +438,10 @@ function initializeChatWidget() {
       chatMessages.appendChild(loadingDiv);
     }
 
-    fetch(`/support_chat_messages/conversations/${normalizedUserId}.json`, {
+    fetch(`/support_chat_messages/conversations/${normalizedUserId}`, {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       },
       credentials: 'same-origin'
     })
@@ -639,8 +640,13 @@ function initializeChatWidget() {
     const userId = document.querySelector('meta[name="current-user-id"]')?.content;
     if (!userId) return;
 
-    fetch('/support_chat_messages/unread_counts')
-      .then(response => response.json())
+    fetch('/support_chat_messages/unread_counts', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'same-origin'
+    })
       .then(data => {
         const totalUnread = data.total_unread || 0;
         latestUnreadSenderId = data.latest_unread_sender_id || null;
