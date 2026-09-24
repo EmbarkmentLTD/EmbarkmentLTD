@@ -99,7 +99,7 @@ class User < ApplicationRecord
     return true if admin? || support? || buyer? || supplier?
 
     false
-  
+  end
 
   def chat_access_pending_with?(other_user)
     return false if other_user.blank?
