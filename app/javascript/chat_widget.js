@@ -647,6 +647,7 @@ function initializeChatWidget() {
       },
       credentials: 'same-origin'
     })
+      .then(response => response.json())
       .then(data => {
         const totalUnread = data.total_unread || 0;
         latestUnreadSenderId = data.latest_unread_sender_id || null;
