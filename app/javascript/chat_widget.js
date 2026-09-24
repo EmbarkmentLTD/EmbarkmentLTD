@@ -474,6 +474,7 @@ function initializeChatWidget() {
         
         if (loadingDiv) loadingDiv.remove();
         clearChatMessages();
+        console.log('[CHAT] After clearChatMessages: chatMessages.children.length =', chatMessages.children.length);
 
         if (data.access_denied) {
           console.log('[CHAT] Access denied for this conversation');
@@ -485,9 +486,13 @@ function initializeChatWidget() {
           console.log('[CHAT] Rendering', data.messages.length, 'messages');
           data.messages.forEach((msg, index) => {
             const isCurrentUser = msg.sender.id === data.current_user.id;
-            console.log(`[CHAT] Message ${index + 1}: from ${msg.sender.name}, isCurrentUser=${isCurrentUser}`);
+            console.log(`[CHAT] Message ${index + 1}/${data.messages.length}: from ${msg.sender.name}, isCurrentUser=${isCurrentUser}, text="${msg.message.substring(0,40)}..."`);
             addMessage(msg.message, isCurrentUser ? 'user' : 'other');
+            console.log(`[CHAT] After addMessage ${index + 1}: chatMessages.children.length = ${chatMessages.children.length}`);
           });
+          console.log('[CHAT] FINAL: All messages added. Total DOM children:', chatMessages.children.length);
+          console.log('[CHAT] Chat container visible?', chatMessages.offsetHeight > 0);
+          console.log('[CHAT] Chat container HTML:', chatMessages.innerHTML.substring(0, 200));
         } else {
           console.log('[CHAT] No messages found');
           addMessage("No previous messages. Start the conversation!", 'bot');
@@ -546,11 +551,11 @@ function initializeChatWidget() {
 
   function addMessage(text, sender) {
     if (!chatMessages) {
-      console.error('[CHAT] chatMessages container not found');
+      console.error('[CHAT] addMessage: chatMessages container not found');
       return;
     }
 
-    console.log('[CHAT] addMessage called:', { text: text.substring(0, 50), sender });
+    console.log('[CHAT] addMessage: text length=', text.length, 'sender=', sender, 'chatMessages element:', chatMessages.id);
 
     const messageDiv = document.createElement('div');
     let bubbleClass = '';
@@ -571,8 +576,17 @@ function initializeChatWidget() {
     bubble.textContent = text;
     messageDiv.appendChild(bubble);
     
+    console.log('[CHAT] addMessage: Created messageDiv with classes:', messageDiv.className);
+    console.log('[CHAT] addMessage: Created bubble with classes:', bubble.className);
+    
     chatMessages.appendChild(messageDiv);
-    console.log('[CHAT] Message added to DOM. Total children:', chatMessages.children.length);
+    
+    console.log('[CHAT] addMessage: Appended to DOM. chatMessages.children.length now =', chatMessages.children.length);
+    console.log('[CHAT] addMessage: messageDiv in DOM?', chatMessages.contains(messageDiv));
+    
+    // Verify it was actually added
+    const lastChild = chatMessages.lastChild;
+    console.log('[CHAT] addMessage: lastChild className =', lastChild?.className);
     
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
