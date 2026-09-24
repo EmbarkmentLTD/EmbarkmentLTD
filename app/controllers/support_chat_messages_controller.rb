@@ -131,24 +131,11 @@ class SupportChatMessagesController < ApplicationController
       return
     end
 
-    if current_user.needs_support_approval_for_chat_with?(receiver) && !current_user.can_chat_with?(receiver)
-      Rails.logger.info("Chat message create: approval required for #{current_user.id} → #{receiver.id}")
-      request = ChatAccessRequest.find_or_create_by(requester: current_user, target: receiver)
-      request.update!(status: "pending") unless request.pending?
-
-      render json: {
-        success: false,
-        requires_approval: true,
-        message: "Your request to chat with #{receiver.name} was sent to support. You can chat with support now while we review it."
-      }, status: :forbidden
-      return
-    end
-
     unless current_user.can_chat_with?(receiver)
       Rails.logger.warn("Chat message create: not allowed for #{current_user.id} → #{receiver.id}")
       render json: {
         success: false,
-        message: "You are not allowed to chat with this contact yet."
+        message: "You are not allowed to chat with this contact."
       }, status: :forbidden
       return
     end

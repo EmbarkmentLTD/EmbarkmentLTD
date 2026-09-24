@@ -91,43 +91,15 @@ class User < ApplicationRecord
     return false if other_user.blank? || other_user == self
     return false unless can_use_chat_widget?
 
-    if admin?
-      return true
-    end
-
-    if support?
-      return true
-    end
-
-    if buyer?
-      return true if other_user.admin? || other_user.support?
-      return false unless other_user.supplier?
-      return ChatAccessRequest.approved_for?(self, other_user)
-    end
-
-    if supplier?
-      return true if other_user.admin? || other_user.support?
-      return false unless other_user.buyer?
-      return ChatAccessRequest.approved_for?(self, other_user)
-    end
-
-    false
+    # Simple role-based access: check if other_user is in our allowed contacts
+    chat_contact_options.exists?(other_user.id)
   end
 
   def can_use_chat_widget?
     return true if admin? || support? || buyer? || supplier?
 
     false
-  end
-
-  def needs_support_approval_for_chat_with?(other_user)
-    return false if other_user.blank? || other_user == self
-    return false if admin? || support?
-    return false unless buyer? || supplier?
-    return false if other_user.admin? || other_user.support?
-
-    (buyer? && other_user.supplier?) || (supplier? && other_user.buyer?)
-  end
+  
 
   def chat_access_pending_with?(other_user)
     return false if other_user.blank?

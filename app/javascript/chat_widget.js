@@ -254,28 +254,16 @@ function initializeChatWidget() {
       
       const isUserSelected = this.value !== '';
       const selectedOption = this.options[this.selectedIndex];
-      const requiresApproval = selectedOption?.dataset?.requiresApproval === 'true';
       
-      console.log('[CHAT] Selection state:', { isUserSelected, requiresApproval, selectedOption: selectedOption?.text });
+      console.log('[CHAT] Selection state:', { isUserSelected, selectedOption: selectedOption?.text });
       
       if (chatInput) chatInput.disabled = !isUserSelected || isSubmitting;
       if (sendButton) sendButton.disabled = !isUserSelected || isSubmitting;
-
-      if (approvalHint) {
-        approvalHint.classList.toggle('hidden', !isUserSelected || !requiresApproval);
-      }
       
       if (isUserSelected) {
         activeConversationUserId = this.value;
-        if (requiresApproval) {
-          console.log('[CHAT] Approval required, showing approval message');
-          clearChatMessages();
-          const contactLabel = selectedOption?.text || 'this contact';
-          addMessage(`Chat access with ${contactLabel} needs support approval first. Send one message to request approval, or message support now.`, 'bot');
-        } else {
-          console.log('[CHAT] Loading conversation for user:', this.value);
-          loadConversation(this.value);
-        }
+        console.log('[CHAT] Loading conversation for user:', this.value);
+        loadConversation(this.value);
         
         // Focus on input
         setTimeout(() => {
