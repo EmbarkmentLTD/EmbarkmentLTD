@@ -62,7 +62,7 @@ class ChatMessageFlowTest < ActionDispatch::IntegrationTest
     assert SupportMessage.exists?(sender: @buyer, receiver: @support, message: "Need support help")
   end
 
-  test "buyer to seller requires support approval and creates pending request" do
+  test "buyer to seller can send without approval (role-based access)" do
     login_as(@buyer)
 
     before_count = SupportMessage.count
@@ -72,14 +72,11 @@ class ChatMessageFlowTest < ActionDispatch::IntegrationTest
       message: "Can we discuss stock?"
     }, as: :json
 
-    assert_response :forbidden
+    assert_response :success
     body = JSON.parse(response.body)
-    assert_equal true, body["requires_approval"]
-    assert_equal before_count, SupportMessage.count
-
-    request = ChatAccessRequest.find_by(requester: @buyer, target: @seller)
-    assert_not_nil request
-    assert_equal "pending", request.status
+    assert_equal true, body["success"]
+    assert_equal before_count + 1, SupportMessage.count
+    assert SupportMessage.exists?(sender: @buyer, receiver: @seller, message: "Can we discuss stock?")
   end
 
   test "admin can send to any user without restriction" do
@@ -118,16 +115,23 @@ class ChatMessageFlowTest < ActionDispatch::IntegrationTest
     assert body["messages"].any?
   end
 
-  test "buyer loading supplier conversation without approval returns guidance" do
+  test "buyer can load supplier conversation (role-based access)" do
     login_as(@buyer)
+
+    SupportMessage.create!(
+      sender: @buyer,
+      receiver: @seller,
+      message: "Can we discuss pricing?"
+    )
 
     get support_chat_conversation_path(@seller), as: :json
 
     assert_response :success
     body = JSON.parse(response.body)
-    assert_equal false, body["success"]
-    assert_equal true, body["access_denied"]
-    assert_includes body["message"], "support approval"
+    assert_equal true, body["success"]
+    assert_equal @seller.id, body.dig("other_user", "id")
+    assert_equal @buyer.id, body.dig("current_user", "id")
+    assert body["messages"].any?
   end
 
   test "recipient can recall and read a newly sent support message" do
