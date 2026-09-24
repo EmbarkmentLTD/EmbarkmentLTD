@@ -1,8 +1,15 @@
 // app/javascript/chat_widget.js - UPDATED AND FIXED
 function initializeChatWidget() {
+  console.log('[CHAT] Initializing chat widget...');
   const chatWidget = document.getElementById('chat-widget');
-  if (!chatWidget) return;
-  if (chatWidget.dataset.initialized === 'true') return;
+  if (!chatWidget) {
+    console.error('[CHAT] chat-widget element not found');
+    return;
+  }
+  if (chatWidget.dataset.initialized === 'true') {
+    console.log('[CHAT] Widget already initialized, skipping');
+    return;
+  }
   chatWidget.dataset.initialized = 'true';
 
   const chatToggle = document.getElementById('chat-toggle');
@@ -12,6 +19,14 @@ function initializeChatWidget() {
   const chatInput = document.getElementById('chat-input');
   const chatMessages = document.getElementById('chat-messages');
   const approvalHint = document.getElementById('chat-approval-hint');
+  
+  console.log('[CHAT] DOM elements found:', { 
+    chatToggle: !!chatToggle, 
+    chatBox: !!chatBox,
+    chatMessages: !!chatMessages,
+    chatInput: !!chatInput,
+    chatForm: !!chatForm
+  });
   let latestUnreadSenderId = null;
   let unreadBySender = {};
   let activeConversationUserId = null;
@@ -235,9 +250,13 @@ function initializeChatWidget() {
   
   if (userSelect) {
     userSelect.addEventListener('change', function() {
+      console.log('[CHAT] User selected from dropdown:', { value: this.value, text: this.options[this.selectedIndex]?.text });
+      
       const isUserSelected = this.value !== '';
       const selectedOption = this.options[this.selectedIndex];
       const requiresApproval = selectedOption?.dataset?.requiresApproval === 'true';
+      
+      console.log('[CHAT] Selection state:', { isUserSelected, requiresApproval, selectedOption: selectedOption?.text });
       
       if (chatInput) chatInput.disabled = !isUserSelected || isSubmitting;
       if (sendButton) sendButton.disabled = !isUserSelected || isSubmitting;
@@ -249,10 +268,12 @@ function initializeChatWidget() {
       if (isUserSelected) {
         activeConversationUserId = this.value;
         if (requiresApproval) {
+          console.log('[CHAT] Approval required, showing approval message');
           clearChatMessages();
           const contactLabel = selectedOption?.text || 'this contact';
           addMessage(`Chat access with ${contactLabel} needs support approval first. Send one message to request approval, or message support now.`, 'bot');
         } else {
+          console.log('[CHAT] Loading conversation for user:', this.value);
           loadConversation(this.value);
         }
         
@@ -262,11 +283,14 @@ function initializeChatWidget() {
         }, 100);
       } else {
         // Clear messages if no user selected
+        console.log('[CHAT] No user selected, clearing messages');
         activeConversationUserId = null;
         clearChatMessages();
         addWelcomeMessage();
       }
     });
+  } else {
+    console.error('[CHAT] support-user-select element not found!');
   }
 
   // Handle form submission
@@ -389,7 +413,12 @@ function initializeChatWidget() {
 
   // Function to load conversation
   function loadConversation(userId, options = {}) {
-    if (!chatMessages) return;
+    console.log('[CHAT] loadConversation called:', { userId, options });
+    
+    if (!chatMessages) {
+      console.error('[CHAT] chatMessages not available');
+      return;
+    }
 
     const showLoader = options.showLoader !== false;
     const suppressErrors = options.suppressErrors === true;
@@ -448,20 +477,31 @@ function initializeChatWidget() {
         return data;
       })
       .then(data => {
+        console.log('[CHAT] Conversation loaded, response:', { 
+          success: data.success, 
+          access_denied: data.access_denied,
+          messageCount: data.messages?.length || 0,
+          messages: data.messages 
+        });
+        
         if (loadingDiv) loadingDiv.remove();
         clearChatMessages();
 
         if (data.access_denied) {
+          console.log('[CHAT] Access denied for this conversation');
           addMessage(data.message || 'This conversation needs support approval first.', 'bot');
           return;
         }
 
         if (Array.isArray(data.messages) && data.messages.length > 0) {
-          data.messages.forEach(msg => {
+          console.log('[CHAT] Rendering', data.messages.length, 'messages');
+          data.messages.forEach((msg, index) => {
             const isCurrentUser = msg.sender.id === data.current_user.id;
+            console.log(`[CHAT] Message ${index + 1}: from ${msg.sender.name}, isCurrentUser=${isCurrentUser}`);
             addMessage(msg.message, isCurrentUser ? 'user' : 'other');
           });
         } else {
+          console.log('[CHAT] No messages found');
           addMessage("No previous messages. Start the conversation!", 'bot');
         }
 
@@ -517,7 +557,12 @@ function initializeChatWidget() {
   }
 
   function addMessage(text, sender) {
-    if (!chatMessages) return;
+    if (!chatMessages) {
+      console.error('[CHAT] chatMessages container not found');
+      return;
+    }
+
+    console.log('[CHAT] addMessage called:', { text: text.substring(0, 50), sender });
 
     const messageDiv = document.createElement('div');
     let bubbleClass = '';
@@ -539,6 +584,8 @@ function initializeChatWidget() {
     messageDiv.appendChild(bubble);
     
     chatMessages.appendChild(messageDiv);
+    console.log('[CHAT] Message added to DOM. Total children:', chatMessages.children.length);
+    
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
