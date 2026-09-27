@@ -63,10 +63,37 @@ class SupportMessage < ApplicationRecord
     other_user(current_user).support? || other_user(current_user).admin?
   end
 
+  after_create_commit :broadcast_to_receiver
+
   # Add this method to ensure sender/receiver types are set
   before_validation :set_polymorphic_types
 
   private
+
+  def broadcast_to_receiver
+    return unless sender.is_a?(User) && receiver.is_a?(User)
+
+    message_payload = {
+      id: id,
+      message: message,
+      sender: { id: sender.id, name: sender.name },
+      receiver: { id: receiver.id, name: receiver.name },
+      created_at: created_at.iso8601
+    }
+
+    ActionCable.server.broadcast("chat_user_#{receiver.id}", { type: "new_message", message: message_payload, sender_id: sender.id })
+
+    unread_by_sender = SupportMessage.where(
+      receiver_id: receiver.id, receiver_type: "User", read_at: nil
+    ).group(:sender_id).count
+
+    ActionCable.server.broadcast("chat_user_#{receiver.id}", {
+      type: "unread_update",
+      total_unread: unread_by_sender.values.sum,
+      unread_by_sender: unread_by_sender,
+      latest_unread_sender_id: sender.id
+    })
+  end
 
   def set_polymorphic_types
     self.sender_type = "User" if sender_type.blank? && sender.present?

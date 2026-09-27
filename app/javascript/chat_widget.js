@@ -1,234 +1,239 @@
-// app/javascript/chat_widget.js - UPDATED AND FIXED
-document.addEventListener('DOMContentLoaded', function() {
-  const chatWidget = document.getElementById('chat-widget');
-  const chatToggle = document.getElementById('chat-toggle');
-  const chatBox = document.getElementById('chat-box');
-  const chatClose = document.getElementById('chat-close');
-  const chatForm = document.getElementById('chat-form');
-  const chatInput = document.getElementById('chat-input');
-  const chatMessages = document.getElementById('chat-messages');
-  
-  // Check if chat widget exists
-  if (!chatWidget) {
-    console.log('Chat widget not found');
-    return;
-  }
+import consumer from "consumer"
 
-  console.log('Chat widget initialized');
+// Module-level state — survives across Turbo navigations, cleaned up on turbo:before-cache
+let chatInitialized = false
+let chatSubscription = null
+let badgeIntervalId = null
+let conversationPollIntervalId = null
 
-  // Draggable functionality - SIMPLIFIED VERSION
-  let isDragging = false;
-  let dragPending = false;
-  let startX, startY, initialX, initialY;
-  const dragThreshold = 6;
-  
-  // Make chat widget draggable
-  function startDrag(e) {
-    // Only drag if clicking on the button or header with drag-handle class
-    if (e.target.closest('.drag-handle')) {
-      dragPending = true;
-      isDragging = false;
-      
-      // Get initial mouse/touch position
-      if (e.type === 'touchstart') {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-      } else {
-        startX = e.clientX;
-        startY = e.clientY;
-      }
-      
-      // Get initial widget position
-      const transform = chatWidget.style.transform;
-      if (transform) {
-        const match = transform.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/);
-        if (match) {
-          initialX = parseFloat(match[1]) || 0;
-          initialY = parseFloat(match[2]) || 0;
-        } else {
-          initialX = 0;
-          initialY = 0;
+function destroyChatWidget() {
+  chatInitialized = false
+  if (chatSubscription) { chatSubscription.unsubscribe(); chatSubscription = null }
+  if (badgeIntervalId) { clearInterval(badgeIntervalId); badgeIntervalId = null }
+  if (conversationPollIntervalId) { clearInterval(conversationPollIntervalId); conversationPollIntervalId = null }
+  const chatWidget = document.getElementById('chat-widget')
+  if (chatWidget) delete chatWidget.dataset.initialized
+}
+
+document.addEventListener('turbo:before-cache', destroyChatWidget)
+
+function initializeChatWidget() {
+  const chatWidget = document.getElementById('chat-widget')
+  if (!chatWidget || chatInitialized) return
+  chatInitialized = true
+  chatWidget.dataset.initialized = 'true'
+
+  const chatToggle = document.getElementById('chat-toggle')
+  const chatBox = document.getElementById('chat-box')
+  const chatClose = document.getElementById('chat-close')
+  const chatForm = document.getElementById('chat-form')
+  const chatInput = document.getElementById('chat-input')
+  const chatMessages = document.getElementById('chat-messages')
+  const approvalHint = document.getElementById('chat-approval-hint')
+  let latestUnreadSenderId = null
+  let unreadBySender = {}
+  let activeConversationUserId = null
+  let isSubmitting = false
+
+  // ─── Action Cable subscription ───────────────────────────────────────────
+  const currentUserId = document.querySelector('meta[name="current-user-id"]')?.content
+  if (currentUserId) {
+    chatSubscription = consumer.subscriptions.create("ChatChannel", {
+      received(data) {
+        if (data.type === 'new_message') {
+          handleIncomingMessage(data)
+        } else if (data.type === 'unread_update') {
+          applyUnreadData(data)
         }
-      } else {
-        initialX = 0;
-        initialY = 0;
       }
-      
-      // Prevent text selection on mouse; allow taps to register on touch
-      if (e.type === 'mousedown') {
-        e.preventDefault();
-      }
-    }
+    })
   }
-  
-  function doDrag(e) {
-    if (!dragPending) return;
-    
-    let currentX, currentY;
-    if (e.type === 'touchmove') {
-      currentX = e.touches[0].clientX;
-      currentY = e.touches[0].clientY;
+
+  function handleIncomingMessage(data) {
+    const senderId = String(data.sender_id || data.message?.sender?.id || '')
+    const isChatOpen = chatBox && !chatBox.classList.contains('hidden')
+    const isActiveSender = activeConversationUserId === senderId
+
+    if (isChatOpen && isActiveSender) {
+      // Conversation with this sender is open — append message and mark read
+      addMessage(data.message.message, 'other')
+      markConversationRead(senderId)
     } else {
-      currentX = e.clientX;
-      currentY = e.clientY;
+      // Not currently viewing — just flash badge (unread_update will follow)
+      flashToggleButton()
     }
-    
-    // Calculate new position
-    const deltaX = currentX - startX;
-    const deltaY = currentY - startY;
+  }
 
+  function flashToggleButton() {
+    const btn = document.getElementById('chat-toggle')
+    if (!btn) return
+    btn.classList.add('animate-bounce')
+    setTimeout(() => btn.classList.remove('animate-bounce'), 1500)
+  }
+
+  function markConversationRead(userId) {
+    // Re-fetch the conversation — this marks messages as read server-side
+    fetch(`/support_chat_messages/conversations/${userId}.json`, {
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    }).then(r => r.ok ? r.json() : null).then(data => {
+      if (data?.success) setTimeout(updateAllUnreadBadges, 100)
+    }).catch(() => {})
+  }
+
+  // ─── Draggable ────────────────────────────────────────────────────────────
+  let isDragging = false, dragPending = false
+  let startX, startY, initialX, initialY
+  const dragThreshold = 6
+
+  function startDrag(e) {
+    if (!e.target.closest('.drag-handle')) return
+    dragPending = true
+    isDragging = false
+    startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX
+    startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY
+    const match = chatWidget.style.transform?.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/)
+    initialX = match ? parseFloat(match[1]) : 0
+    initialY = match ? parseFloat(match[2]) : 0
+    if (e.type === 'mousedown') e.preventDefault()
+  }
+
+  function doDrag(e) {
+    if (!dragPending) return
+    const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX
+    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY
+    const deltaX = currentX - startX, deltaY = currentY - startY
     if (!isDragging) {
-      if (Math.abs(deltaX) < dragThreshold && Math.abs(deltaY) < dragThreshold) {
-        return;
-      }
-      isDragging = true;
+      if (Math.abs(deltaX) < dragThreshold && Math.abs(deltaY) < dragThreshold) return
+      isDragging = true
     }
-
-    e.preventDefault();
-
-    const newX = initialX + deltaX;
-    const newY = initialY + deltaY;
-    
-    // Apply transform
-    chatWidget.style.transform = `translate3d(${newX}px, ${newY}px, 0)`;
-    
-    // Save position
-    localStorage.setItem('chatWidgetPosition', JSON.stringify({
-      x: newX,
-      y: newY
-    }));
+    e.preventDefault()
+    const newX = initialX + deltaX, newY = initialY + deltaY
+    chatWidget.style.transform = `translate3d(${newX}px, ${newY}px, 0)`
+    localStorage.setItem('chatWidgetPosition', JSON.stringify({ x: newX, y: newY }))
   }
-  
-  function stopDrag() {
-    isDragging = false;
-    dragPending = false;
-  }
-  
-  // Add event listeners for dragging
-  chatWidget.addEventListener('mousedown', startDrag);
-  chatWidget.addEventListener('touchstart', startDrag);
-  
-  document.addEventListener('mousemove', doDrag);
-  document.addEventListener('touchmove', doDrag, { passive: false });
-  
-  document.addEventListener('mouseup', stopDrag);
-  document.addEventListener('touchend', stopDrag);
 
-  // Load saved position
+  function stopDrag() { isDragging = false; dragPending = false }
+
+  chatWidget.addEventListener('mousedown', startDrag)
+  chatWidget.addEventListener('touchstart', startDrag)
+  document.addEventListener('mousemove', doDrag)
+  document.addEventListener('touchmove', doDrag, { passive: false })
+  document.addEventListener('mouseup', stopDrag)
+  document.addEventListener('touchend', stopDrag)
+
+  function getCurrentTranslation() {
+    const match = chatWidget.style.transform?.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/)
+    return match ? { x: parseFloat(match[1]), y: parseFloat(match[2]) } : { x: 0, y: 0 }
+  }
+
+  function persistPosition(x, y) {
+    chatWidget.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    localStorage.setItem('chatWidgetPosition', JSON.stringify({ x, y }))
+  }
+
+  function keepWidgetInViewport() {
+    const margin = 8
+    const current = getCurrentTranslation()
+    chatWidget.style.transform = 'translate3d(0px, 0px, 0px)'
+    const baseRect = chatWidget.getBoundingClientRect()
+    const clampedX = Math.max(margin - baseRect.left, Math.min((window.innerWidth - margin) - baseRect.right, current.x))
+    const clampedY = Math.max(margin - baseRect.top, Math.min((window.innerHeight - margin) - baseRect.bottom, current.y))
+    persistPosition(clampedX, clampedY)
+  }
+
   function loadPosition() {
     try {
-      const savedPosition = localStorage.getItem('chatWidgetPosition');
-      if (savedPosition) {
-        const { x, y } = JSON.parse(savedPosition);
-        chatWidget.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-      }
-    } catch (e) {
-      console.error('Error loading chat position:', e);
-    }
+      const saved = localStorage.getItem('chatWidgetPosition')
+      if (saved) { const { x, y } = JSON.parse(saved); persistPosition(x, y) }
+      keepWidgetInViewport()
+    } catch (e) {}
   }
 
-  // Toggle chat box - SIMPLIFIED
+  window.addEventListener('resize', keepWidgetInViewport)
+
+  // ─── Toggle ───────────────────────────────────────────────────────────────
   if (chatToggle) {
     chatToggle.addEventListener('click', function(e) {
-      // Only toggle if not dragging
-      if (!isDragging) {
-        console.log('Toggling chat box');
-        chatBox.classList.toggle('hidden');
-        
-        if (!chatBox.classList.contains('hidden')) {
-          // Chat is opening
-          setTimeout(() => {
-            if (chatInput) chatInput.focus();
-          }, 100);
-          
-          // Load welcome message if empty
-          if (chatMessages && chatMessages.children.length === 0) {
-            addWelcomeMessage();
+      if (isDragging) return
+      chatBox.classList.toggle('hidden')
+      if (!chatBox.classList.contains('hidden')) {
+        setTimeout(() => chatInput?.focus(), 100)
+        if (chatMessages?.children.length === 0) addWelcomeMessage()
+        updateAllUnreadBadges()
+        if (userSelect && latestUnreadSenderId) {
+          const sel = userSelect.value ? String(userSelect.value) : null
+          if (!sel || (unreadBySender[sel] || 0) === 0) {
+            const opt = Array.from(userSelect.options).find(o => o.value === String(latestUnreadSenderId))
+            if (opt) { userSelect.value = String(latestUnreadSenderId); userSelect.dispatchEvent(new Event('change')) }
           }
-          
-          // Update unread counts
-          updateAllUnreadBadges();
         }
-        
-        e.stopPropagation();
       }
-    });
+      e.stopPropagation()
+    })
   }
 
-  // Close chat box
   if (chatClose) {
     chatClose.addEventListener('click', function(e) {
-      chatBox.classList.add('hidden');
-      e.stopPropagation();
-    });
+      chatBox.classList.add('hidden')
+      e.stopPropagation()
+    })
   }
 
-  // Auto-resize textarea
   if (chatInput) {
     chatInput.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-    });
+      this.style.height = 'auto'
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px'
+    })
   }
 
-  // Handle support user selection
-  const userSelect = document.getElementById('support-user-select');
-  const sendButton = document.getElementById('send-button');
-  
+  // ─── User select (support/admin only) ────────────────────────────────────
+  const userSelect = document.getElementById('support-user-select')
+  const sendButton = document.getElementById('send-button')
+
   if (userSelect) {
     userSelect.addEventListener('change', function() {
-      const isUserSelected = this.value !== '';
-      
-      if (chatInput) chatInput.disabled = !isUserSelected;
-      if (sendButton) sendButton.disabled = !isUserSelected;
-      
-      if (isUserSelected) {
-        // Clear and load conversation
-        clearChatMessages();
-        loadConversation(this.value);
-        
-        // Focus on input
-        setTimeout(() => {
-          if (chatInput) chatInput.focus();
-        }, 100);
+      const isSelected = this.value !== ''
+      const requiresApproval = this.options[this.selectedIndex]?.dataset?.requiresApproval === 'true'
+      if (chatInput) chatInput.disabled = !isSelected || isSubmitting
+      if (sendButton) sendButton.disabled = !isSelected || isSubmitting
+      if (approvalHint) approvalHint.classList.toggle('hidden', !isSelected || !requiresApproval)
+      if (isSelected) {
+        activeConversationUserId = this.value
+        if (requiresApproval) {
+          clearChatMessages()
+          addMessage(`Chat with ${this.options[this.selectedIndex]?.text || 'this contact'} needs support approval first.`, 'bot')
+        } else {
+          loadConversation(this.value)
+        }
+        setTimeout(() => chatInput?.focus(), 100)
       } else {
-        // Clear messages if no user selected
-        clearChatMessages();
-        addWelcomeMessage();
+        activeConversationUserId = null
+        clearChatMessages()
+        addWelcomeMessage()
       }
-    });
+    })
   }
 
-  // Handle form submission
+  // ─── Form submit ──────────────────────────────────────────────────────────
   if (chatForm) {
     chatForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const message = chatInput?.value.trim();
-      
-      // Validation
-      if (!message || message.length === 0) {
-        alert('Please type a message before sending.');
-        if (chatInput) {
-          chatInput.focus();
-          chatInput.style.borderColor = 'red';
-          setTimeout(() => {
-            if (chatInput) chatInput.style.borderColor = '';
-          }, 2000);
-        }
-        return;
+      e.preventDefault()
+      if (isSubmitting) return
+      const message = chatInput?.value.trim()
+      if (!message) {
+        chatInput?.focus()
+        if (chatInput) { chatInput.style.borderColor = 'red'; setTimeout(() => { chatInput.style.borderColor = '' }, 2000) }
+        return
       }
+      if (userSelect && !userSelect.value) { userSelect.focus(); return }
 
-      if (userSelect && !userSelect.value) {
-        alert('Please select a user to chat with.');
-        if (userSelect) userSelect.focus();
-        return;
-      }
+      const formData = new FormData(this)
+      isSubmitting = true
+      if (chatInput) chatInput.disabled = true
+      if (sendButton) sendButton.disabled = true
+      const typingIndicator = addTypingIndicator()
 
-      // Show typing indicator
-      const typingIndicator = addTypingIndicator();
-      const formData = new FormData(this);
-      
       fetch(this.action, {
         method: 'POST',
         body: formData,
@@ -237,271 +242,234 @@ document.addEventListener('DOMContentLoaded', function() {
           'Accept': 'application/json'
         }
       })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-      })
+      .then(async r => { const d = await r.json().catch(() => ({})); return r.ok ? d : { success: false, ...d } })
       .then(data => {
-        typingIndicator.remove();
-
+        typingIndicator.remove()
         if (data.success) {
-          addMessage(message, 'user');
-          
-          if (chatInput) {
-            chatInput.value = '';
-            chatInput.style.height = 'auto';
+          addMessage(message, 'user')
+          if (chatInput) { chatInput.value = ''; chatInput.style.height = 'auto' }
+          // Refresh conversation after short delay to pick up any server-side updates
+          if (userSelect?.value) {
+            setTimeout(() => loadConversation(userSelect.value, { showLoader: false, suppressErrors: true }), 500)
           }
-          
-          addMessage("✓ Message sent!", 'bot');
-          
-          // Update unread badges
-          setTimeout(updateAllUnreadBadges, 300);
-          
-          // Reload conversation if user selected
-          if (userSelect && userSelect.value) {
-            setTimeout(() => {
-              loadConversation(userSelect.value);
-            }, 1000);
-          }
-        } else {
-          addMessage(data.message || "Failed to send message.", 'bot');
+        } else if (data.requires_approval) {
+          addMessage(data.message || "This chat requires support approval first.", 'bot')
         }
       })
-      .catch(error => {
-        console.error('Error:', error);
-        typingIndicator.remove();
-        addMessage("Sorry, there was an error sending your message.", 'bot');
-      });
-    });
+      .catch(error => { console.error('Chat send error:', error); typingIndicator.remove() })
+      .finally(() => {
+        isSubmitting = false
+        if (chatInput) chatInput.disabled = !!(userSelect && !userSelect.value)
+        if (sendButton) sendButton.disabled = !!(userSelect && !userSelect.value)
+      })
+    })
   }
 
-  // Function to load conversation
-  function loadConversation(userId) {
-    if (!chatMessages) return;
-    
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'flex justify-start';
-    loadingDiv.innerHTML = `
-      <div class="bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3">
-        <div class="flex space-x-1">
-          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        </div>
-      </div>
-    `;
-    chatMessages.appendChild(loadingDiv);
+  // ─── Conversation loading ─────────────────────────────────────────────────
+  function loadConversation(userId, options = {}) {
+    if (!chatMessages) return
+    const showLoader = options.showLoader !== false
+    const suppressErrors = options.suppressErrors === true
+    const normalizedId = String(userId || '').trim()
+    if (!/^\d+$/.test(normalizedId)) return
 
-    fetch(`/support/conversations/${userId}.json`)
-      .then(response => {
-        if (!response.ok) throw new Error('Failed to load conversation');
-        return response.json();
-      })
-      .then(data => {
-        loadingDiv.remove();
-        clearChatMessages();
-        
-        addMessage(`Chatting with ${data.other_user.name}`, 'bot');
-        
-        if (data.messages && data.messages.length > 0) {
-          data.messages.forEach(msg => {
-            const isCurrentUser = msg.sender.id === data.current_user.id;
-            addMessage(msg.message, isCurrentUser ? 'user' : 'other');
-          });
-          
-          // Update badges after loading
-          setTimeout(updateAllUnreadBadges, 300);
-        } else {
-          addMessage("No previous messages. Start the conversation!", 'bot');
-        }
-      })
-      .catch(error => {
-        console.error('Error loading conversation:', error);
-        loadingDiv.remove();
-        addMessage("Failed to load conversation. Please try again.", 'bot');
-      });
-  }
+    activeConversationUserId = normalizedId
+    const hadMessages = chatMessages.children.length > 0
+    let loadingDiv = null
 
-  function clearChatMessages() {
-    if (!chatMessages) return;
-    
-    while (chatMessages.firstChild) {
-      chatMessages.removeChild(chatMessages.firstChild);
+    if (showLoader) {
+      loadingDiv = document.createElement('div')
+      loadingDiv.className = 'flex justify-start'
+      loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3"><div class="flex space-x-1"><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0.1s"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div></div>`
+      chatMessages.appendChild(loadingDiv)
     }
+
+    fetch(`/support_chat_messages/conversations/${normalizedId}.json`, {
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    })
+    .then(async r => {
+      const ct = r.headers.get('content-type') || ''
+      if (r.redirected || !ct.includes('application/json')) throw new Error('invalid_response')
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(d.message || 'load_failed')
+      return d
+    })
+    .then(data => {
+      loadingDiv?.remove()
+      clearChatMessages()
+      if (data.access_denied) {
+        addMessage(data.message || 'This conversation needs support approval first.', 'bot')
+        return
+      }
+      if (Array.isArray(data.messages) && data.messages.length > 0) {
+        data.messages.forEach(msg => {
+          const isMe = msg.sender.id === data.current_user.id
+          addMessage(msg.message, isMe ? 'user' : 'other')
+        })
+      } else {
+        addMessage("No previous messages. Start the conversation!", 'bot')
+      }
+      setTimeout(updateAllUnreadBadges, 150)
+    })
+    .catch(error => {
+      loadingDiv?.remove()
+      if (suppressErrors) return
+      if (!hadMessages && chatMessages.children.length === 0) addMessage('No previous messages. Start the conversation!', 'bot')
+    })
+  }
+
+  // ─── Badge updates ────────────────────────────────────────────────────────
+  function updateAllUnreadBadges() {
+    if (!currentUserId) return
+    fetch('/support_chat_messages/unread_counts', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(data => applyUnreadData(data))
+      .catch(() => {})
+  }
+
+  function applyUnreadData(data) {
+    const total = data.total_unread || 0
+    latestUnreadSenderId = data.latest_unread_sender_id || null
+    unreadBySender = data.unread_by_sender || {}
+
+    const toggleBadge = document.getElementById('chat-toggle-badge')
+    if (toggleBadge) {
+      toggleBadge.textContent = total
+      toggleBadge.classList.toggle('hidden', total === 0)
+      toggleBadge.classList.toggle('animate-pulse', total > 0)
+    }
+
+    const headerBadge = document.getElementById('chat-header-badge')
+    if (headerBadge) {
+      headerBadge.textContent = `${total} unread`
+      headerBadge.classList.toggle('hidden', total === 0)
+    }
+
+    const userUnreadMsg = document.getElementById('user-unread-message')
+    if (userUnreadMsg) {
+      if (total > 0) {
+        userUnreadMsg.textContent = `You have ${total} unread message${total === 1 ? '' : 's'}`
+        userUnreadMsg.classList.remove('hidden')
+      } else {
+        userUnreadMsg.classList.add('hidden')
+      }
+    }
+
+    const sel = document.getElementById('support-user-select')
+    if (sel) {
+      Array.from(sel.options).forEach(opt => {
+        if (!opt.value) return
+        const base = opt.dataset.baseLabel || opt.text
+        opt.dataset.baseLabel = base
+        const count = unreadBySender[opt.value] || 0
+        if (count > 0) {
+          opt.text = `${base} (${count} unread)`
+          opt.style.color = '#dc2626'
+          opt.style.fontWeight = '600'
+        } else {
+          opt.text = base
+          opt.style.color = ''
+          opt.style.fontWeight = ''
+        }
+      })
+    }
+  }
+
+  // ─── Conversation list badges (support/admin sidebar) ────────────────────
+  function updateConversationListBadges(unreadBySender) {
+    document.querySelectorAll('[data-conversation-user-id]').forEach(el => {
+      const uid = el.dataset.conversationUserId
+      const badge = el.querySelector('.unread-badge')
+      const count = unreadBySender[uid] || 0
+      if (badge) {
+        badge.textContent = count > 0 ? `${count} unread` : ''
+        badge.classList.toggle('hidden', count === 0)
+      }
+    })
+  }
+
+  // ─── Message helpers ──────────────────────────────────────────────────────
+  function clearChatMessages() {
+    if (!chatMessages) return
+    while (chatMessages.firstChild) chatMessages.removeChild(chatMessages.firstChild)
   }
 
   function addWelcomeMessage() {
-    if (!chatMessages) return;
-    
-    const isSupport = currentUserIsSupport();
-    
+    const isSupport = document.querySelector('meta[name="current-user-role"]')?.content === 'support' ||
+                      document.querySelector('meta[name="current-user-role"]')?.content === 'admin'
     if (isSupport) {
-      addMessage("👋 Quick chat mode active. Select a user from the dropdown below.", 'bot');
+      addMessage("👋 Admin/Support chat mode. Select a user from the dropdown below.", 'bot')
     } else {
-      addMessage("Hello! 👋 How can we help you today?", 'bot');
-      addMessage("We typically reply within minutes", 'bot');
+      addMessage("Hello! 👋 How can we help you today?", 'bot')
+      addMessage("We typically reply within minutes", 'bot')
     }
-  }
-
-  function currentUserIsSupport() {
-    return document.querySelector('meta[name="current-user-role"]')?.content === 'support' || 
-           document.querySelector('meta[name="current-user-role"]')?.content === 'admin';
   }
 
   function addMessage(text, sender) {
-    if (!chatMessages) return;
-
-    const messageDiv = document.createElement('div');
-    let bubbleClass = '';
-    
-    if (sender === 'other') {
-      messageDiv.className = 'flex justify-start mb-2';
-      bubbleClass = 'bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3 max-w-xs text-sm';
-    } else if (sender === 'user') {
-      messageDiv.className = 'flex justify-end mb-2';
-      bubbleClass = 'bg-green-600 text-white rounded-lg rounded-br-none p-3 max-w-xs text-sm';
-    } else { // 'bot'
-      messageDiv.className = 'flex justify-start mb-2';
-      bubbleClass = 'bg-blue-100 text-blue-800 rounded-lg rounded-bl-none p-3 max-w-xs text-sm';
+    if (!chatMessages) return
+    const div = document.createElement('div')
+    let bubbleClass
+    if (sender === 'user') {
+      div.className = 'flex justify-end mb-2'
+      bubbleClass = 'bg-green-600 text-white rounded-lg rounded-br-none p-3 max-w-xs text-sm'
+    } else if (sender === 'other') {
+      div.className = 'flex justify-start mb-2'
+      bubbleClass = 'bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3 max-w-xs text-sm'
+    } else {
+      div.className = 'flex justify-start mb-2'
+      bubbleClass = 'bg-blue-100 text-blue-800 rounded-lg rounded-bl-none p-3 max-w-xs text-sm'
     }
-    
-    const bubble = document.createElement('div');
-    bubble.className = bubbleClass;
-    bubble.textContent = text;
-    messageDiv.appendChild(bubble);
-    
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    const bubble = document.createElement('div')
+    bubble.className = bubbleClass
+    bubble.textContent = text
+    div.appendChild(bubble)
+    chatMessages.appendChild(div)
+    chatMessages.scrollTop = chatMessages.scrollHeight
   }
 
   function addTypingIndicator() {
-    if (!chatMessages) return document.createElement('div');
-
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'flex justify-start mb-2';
-    
-    const bubble = document.createElement('div');
-    bubble.className = 'bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3';
-    bubble.innerHTML = `
-      <div class="flex space-x-1">
-        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-      </div>
-    `;
-    
-    typingDiv.appendChild(bubble);
-    chatMessages.appendChild(typingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    return typingDiv;
+    if (!chatMessages) return document.createElement('div')
+    const div = document.createElement('div')
+    div.className = 'flex justify-start mb-2'
+    const bubble = document.createElement('div')
+    bubble.className = 'bg-gray-200 text-gray-800 rounded-lg rounded-bl-none p-3'
+    bubble.innerHTML = `<div class="flex space-x-1"><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0.1s"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div>`
+    div.appendChild(bubble)
+    chatMessages.appendChild(div)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+    return div
   }
 
-  // NEW FUNCTION: Update all unread badges
-  function updateAllUnreadBadges() {
-    // Only update if user is signed in
-    const userId = document.querySelector('meta[name="current-user-id"]')?.content;
-    if (!userId) return;
-    
-    fetch('/support/dashboard.json')
-      .then(response => response.json())
-      .then(data => {
-        const totalUnread = data.total_unread_for_current_user || data.current_user_unread || 0;
-        
-        // Update toggle button badge
-        const toggleBadge = document.getElementById('chat-toggle-badge');
-        if (toggleBadge) {
-          toggleBadge.textContent = totalUnread;
-          if (totalUnread > 0) {
-            toggleBadge.classList.remove('hidden');
-            toggleBadge.classList.add('animate-pulse');
-          } else {
-            toggleBadge.classList.add('hidden');
-            toggleBadge.classList.remove('animate-pulse');
-          }
-        }
-        
-        // Update header badge
-        const headerBadge = document.getElementById('chat-header-badge');
-        if (headerBadge) {
-          headerBadge.textContent = totalUnread + ' unread';
-          if (totalUnread > 0) {
-            headerBadge.classList.remove('hidden');
-          } else {
-            headerBadge.classList.add('hidden');
-          }
-        }
-        
-        // Update user unread message
-        const userUnreadMessage = document.getElementById('user-unread-message');
-        if (userUnreadMessage) {
-          if (totalUnread > 0) {
-            userUnreadMessage.textContent = `You have ${totalUnread} unread message${totalUnread === 1 ? '' : 's'}`;
-            userUnreadMessage.classList.remove('hidden');
-          } else {
-            userUnreadMessage.classList.add('hidden');
-          }
-        }
-        
-        // Update user dropdown
-        const userSelect = document.getElementById('support-user-select');
-        if (userSelect && data.unread_counts) {
-          Array.from(userSelect.options).forEach(option => {
-            if (option.value && data.unread_counts[option.value]) {
-              const unreadCount = data.unread_counts[option.value];
-              const name = option.text.split('(')[0].trim();
-              if (unreadCount > 0) {
-                option.text = `${name} (${unreadCount} unread)`;
-                option.style.color = '#dc2626';
-                option.style.fontWeight = '600';
-              } else {
-                option.text = name;
-                option.style.color = '';
-                option.style.fontWeight = '';
-              }
-            }
-          });
-        }
-      })
-      .catch(error => console.error('Error updating badges:', error));
+  // ─── Fallback polling (Action Cable handles real-time; this is a safety net) ─
+  if (currentUserId) {
+    badgeIntervalId = setInterval(updateAllUnreadBadges, 60000)
   }
 
-  // Close chat when clicking outside
+  // ─── Close on outside click ───────────────────────────────────────────────
   document.addEventListener('click', function(e) {
-    if (chatBox && !chatBox.classList.contains('hidden') && 
-        !chatBox.contains(e.target) && !chatToggle.contains(e.target)) {
-      chatBox.classList.add('hidden');
+    if (chatBox && !chatBox.classList.contains('hidden') &&
+        chatToggle && !chatBox.contains(e.target) && !chatToggle.contains(e.target)) {
+      chatBox.classList.add('hidden')
     }
-  });
+  })
 
-  // Prevent chat widget clicks from closing the chat
-  chatWidget.addEventListener('click', function(e) {
-    e.stopPropagation();
-  });
+  chatWidget.addEventListener('click', e => e.stopPropagation())
 
-  // Initialize
-  loadPosition();
-  
-  // Add welcome message on load
-  setTimeout(() => {
-    if (chatMessages && chatMessages.children.length === 0) {
-      addWelcomeMessage();
-    }
-    
-    // Initial badge update
-    updateAllUnreadBadges();
-  }, 500);
-  
-  // Periodic updates
-  setInterval(updateAllUnreadBadges, 30000); // Every 30 seconds
-  
-  // Update when page becomes visible
+  // ─── Visibility change: refresh badges when tab regains focus ─────────────
   document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-      setTimeout(updateAllUnreadBadges, 1000);
-    }
-  });
-});
+    if (!document.hidden && currentUserId) setTimeout(updateAllUnreadBadges, 500)
+  })
 
+  // ─── Init ─────────────────────────────────────────────────────────────────
+  loadPosition()
+
+  setTimeout(() => {
+    if (chatMessages?.children.length === 0) addWelcomeMessage()
+    if (currentUserId) updateAllUnreadBadges()
+  }, 300)
+}
+
+document.addEventListener('DOMContentLoaded', initializeChatWidget)
+document.addEventListener('turbo:load', initializeChatWidget)
+if (document.readyState !== 'loading') initializeChatWidget()

@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <% if user_signed_in? %>
+    <meta name="current-user-id" content="<%= current_user.id %>">
+    <meta name="current-user-role" content="<%= current_user.role %>">
+    <% end %>
 
     <!-- FAVICON FOR BROWSER TABS -->
   <%= favicon_link_tag 'favicon.ico' %>
